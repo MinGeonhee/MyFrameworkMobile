@@ -1,0 +1,86 @@
+# Visual Studio user data and caches
+.vs/
+**/.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+ipch/
+
+# Build output directories
+**/Bin/
+**/bin/
+**/Build/
+**/build/
+**/x64/
+**/x86/
+**/Debug/
+**/Release/
+**/RelWithDebInfo/
+**/MinSizeRel/
+
+# Generated Engine SDK
+EngineSDK/
+
+# Compiled and intermediate files
+*.obj
+*.o
+*.pch
+*.pchi
+*.idb
+*.ilk
+*.tlog
+*.lastbuildstate
+*.exp
+*.lib
+*.dll
+*.exe
+*.pdb
+*.ipdb
+*.iobj
+*.log
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+Makefile
+*.ninja
+.ninja_deps
+.ninja_log
+
+# Game resources and generated assets
+**/Resource/
+**/Resources/
+**/Asset/
+**/Assets/
+**/Saved/
+**/Cache/
+**/DerivedDataCache/
+
+# Android and Gradle generated files
+.gradle/
+**/.cxx/
+**/.externalNativeBuild/
+**/captures/
+local.properties
+*.apk
+*.aab
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.swp
+*~
+

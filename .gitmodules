@@ -1,0 +1,4 @@
+[submodule "Library/DiligentEngine"]
+	path = Library/DiligentEngine
+	url = https://github.com/DiligentGraphics/DiligentEngine.git
+	ignore = dirty

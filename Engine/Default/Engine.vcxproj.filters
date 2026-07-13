@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Default">
+      <UniqueIdentifier>{8240C715-B56D-4822-A319-D02197F15FA3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{d9961dcd-6e75-40fc-9c22-122b4692113e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\00. Base">
+      <UniqueIdentifier>{75806fd4-b390-4402-818c-734b53fb1208}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{c6efb371-9c00-4a73-bd22-571164bd4f14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\00. Game Manager">
+      <UniqueIdentifier>{efbcfd32-3222-498c-a6a7-6a1b770c06ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\01. Graphic Device">
+      <UniqueIdentifier>{08d25500-35c5-403b-b9dd-a5a209943e9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\02. Time Manager">
+      <UniqueIdentifier>{9edbb61d-0bc5-448e-bf65-f77b35e04a8d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CBase.h">
+      <Filter>Utility\00. Base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CGameManager.h">
+      <Filter>System\00. Game Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Private\CGraphicDevice.h">
+      <Filter>System\01. Graphic Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Engine_Define.h">
+      <Filter>Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Engine_Enum.h">
+      <Filter>Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Engine_Macro.h">
+      <Filter>Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Engine_Struct.h">
+      <Filter>Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\pch.h">
+      <Filter>Default</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine_Funtion.h">
+      <Filter>Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CTimeManger.h">
+      <Filter>System\02. Time Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CTimer.h">
+      <Filter>System\02. Time Manager</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CBase.cpp">
+      <Filter>Utility\00. Base</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CGameManager.cpp">
+      <Filter>System\00. Game Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CGraphicDevice.cpp">
+      <Filter>System\01. Graphic Device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\pch.cpp">
+      <Filter>Default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CTimeManger.cpp">
+      <Filter>System\02. Time Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CTimer.cpp">
+      <Filter>System\02. Time Manager</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

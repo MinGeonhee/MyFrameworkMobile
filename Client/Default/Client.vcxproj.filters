@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup><Filter Include="Public"><UniqueIdentifier>{5CD172E7-4C3D-48E8-AFC7-6D2FF7E7000B}</UniqueIdentifier></Filter><Filter Include="Private"><UniqueIdentifier>{62002C8F-A7E8-45FD-8748-C0FCE83645BE}</UniqueIdentifier></Filter><Filter Include="Default"><UniqueIdentifier>{7B3762F1-37CC-483A-A234-E25784A0D42D}</UniqueIdentifier></Filter></ItemGroup>
+  <ItemGroup><ClInclude Include="..\Public\CMainApp.h"><Filter>Public</Filter></ClInclude><ClInclude Include="..\Public\pch.h"><Filter>Public</Filter></ClInclude><ClInclude Include="framework.h"><Filter>Default</Filter></ClInclude></ItemGroup>
+  <ItemGroup><ClCompile Include="Client.cpp"><Filter>Default</Filter></ClCompile><ClCompile Include="..\Private\pch.cpp"><Filter>Private</Filter></ClCompile><ClCompile Include="..\Private\CMainApp.cpp"><Filter>Private</Filter></ClCompile></ItemGroup>
+</Project>

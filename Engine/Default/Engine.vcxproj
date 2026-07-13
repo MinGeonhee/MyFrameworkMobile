@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{89D9980A-34B8-4D49-9A14-CE49928DA151}</ProjectGuid>
+    <RootNamespace>Engine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir>..\Bin\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>ENGINE_EXPORTS;PLATFORM_WIN32=1;DILIGENT_VK_SHARED=1;DILIGENT_D3D11_SHARED=1;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\Public;..\Private;..\..\Library\DiligentEngine\DiligentCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(ProjectDir)..\..\EngineSDK\Inc" mkdir "$(ProjectDir)..\..\EngineSDK\Inc"
+if not exist "$(ProjectDir)..\..\EngineSDK\Lib" mkdir "$(ProjectDir)..\..\EngineSDK\Lib"
+if not exist "$(ProjectDir)..\..\Client\Bin" mkdir "$(ProjectDir)..\..\Client\Bin"
+xcopy /y /s "$(ProjectDir)..\Public\*.*" "$(ProjectDir)..\..\EngineSDK\Inc\"
+copy /y "$(TargetPath)" "$(ProjectDir)..\..\Client\Bin\"
+copy /y "$(TargetDir)$(TargetName).lib" "$(ProjectDir)..\..\EngineSDK\Lib\"
+if "$(Configuration)"=="Debug" if exist "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineVulkan\Debug\GraphicsEngineVk_64d.dll" copy /y "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineVulkan\Debug\GraphicsEngineVk_64d.dll" "$(ProjectDir)..\..\Client\Bin\"
+if "$(Configuration)"=="Debug" if exist "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineD3D11\Debug\GraphicsEngineD3D11_64d.dll" copy /y "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineD3D11\Debug\GraphicsEngineD3D11_64d.dll" "$(ProjectDir)..\..\Client\Bin\"
+if "$(Configuration)"=="Release" if exist "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineVulkan\Release\GraphicsEngineVk_64r.dll" copy /y "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineVulkan\Release\GraphicsEngineVk_64r.dll" "$(ProjectDir)..\..\Client\Bin\"
+if "$(Configuration)"=="Release" if exist "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineD3D11\Release\GraphicsEngineD3D11_64r.dll" copy /y "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineD3D11\Release\GraphicsEngineD3D11_64r.dll" "$(ProjectDir)..\..\Client\Bin\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Public\CBase.h" />
+    <ClInclude Include="..\Public\CGameManager.h" />
+    <ClInclude Include="..\Public\CTimeManger.h" />
+    <ClInclude Include="..\Public\CTimer.h" />
+    <ClInclude Include="..\Public\Engine_Define.h" />
+    <ClInclude Include="..\Public\Engine_Enum.h" />
+    <ClInclude Include="..\Public\Engine_Macro.h" />
+    <ClInclude Include="..\Public\Engine_Struct.h" />
+    <ClInclude Include="..\Public\pch.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="..\Private\CGraphicDevice.h" />
+    <ClInclude Include="Engine_Funtion.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="..\Private\pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\Private\CBase.cpp" />
+    <ClCompile Include="..\Private\CGameManager.cpp" />
+    <ClCompile Include="..\Private\CGraphicDevice.cpp" />
+    <ClCompile Include="..\Private\CTimeManger.cpp" />
+    <ClCompile Include="..\Private\CTimer.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
