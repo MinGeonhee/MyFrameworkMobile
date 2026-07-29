@@ -1,6 +1,7 @@
-#include "CMainApp.h"
+﻿#include "CMainApp.h"
 
 #include "CGameManager.h"
+#include "Game_Entry.h"
 
 CMainApp::~CMainApp()
 {
@@ -12,7 +13,7 @@ HRESULT CMainApp::Initialize(HWND hWnd,
                              uint32 iWinSizeY,
                              GRAPHIC_API eGraphicAPI)
 {
-    Engine_Desc EngineDesc{};
+    Engine::Engine_Desc EngineDesc{};
     EngineDesc.eGraphicAPI = eGraphicAPI;
     EngineDesc.pNativeWindow = hWnd;
     EngineDesc.iWinSizeX = iWinSizeX;
@@ -20,8 +21,17 @@ HRESULT CMainApp::Initialize(HWND hWnd,
 
     m_pGameManager = CGameManager::GetInstance();
 
-    return m_pGameManager->Initialize_Engine(EngineDesc);
+    if (FAILED(m_pGameManager->Initialize_Engine(EngineDesc)))
+        return E_FAIL;
+
+    if(FAILED(m_pGameManager->SceneManager_Register_Factory(1,[](const Engine::CREATE_SCENE_DESC& Desc)->CScene*{return Game::Create_TestScene(Desc);})))
+        return E_FAIL;
+    Engine::CREATE_SCENE_DESC TestSceneDesc{};TestSceneDesc.iMakeSceneID=1;
+    m_pGameManager->SceneManager_Request_Change(TestSceneDesc);
+
+    return S_OK;
 }
+
 
 void CMainApp::Update()
 {
@@ -72,3 +82,4 @@ void CMainApp::Free()
 
     CBase::Free();
 }
+

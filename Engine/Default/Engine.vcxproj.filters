@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Default">
@@ -22,6 +22,84 @@
     <Filter Include="System\02. Time Manager">
       <UniqueIdentifier>{9edbb61d-0bc5-448e-bf65-f77b35e04a8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\03. Scene Manager">
+      <UniqueIdentifier>{06816592-C422-4863-901C-7FB8E9FDD4F2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\04. GameObject Manager">
+      <UniqueIdentifier>{A4BDA5BF-7347-4F56-A421-FE331E303795}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\05. Prototype Manager">
+      <UniqueIdentifier>{FF73AEB6-08D1-484E-ACEC-105BE77B80B4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\06. Input Manager">
+      <UniqueIdentifier>{0CC4F11F-06E3-4FE9-8F1C-C0B90028573D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\07. Render Manager">
+      <UniqueIdentifier>{FA3E7293-DAE1-4D2F-95F4-A0FB749C61F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\07. Render Manager\RenderState Manager">
+      <UniqueIdentifier>{760882E4-C674-4376-8E97-A48FCDBB37BB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\08. RenderTarget Manager">
+      <UniqueIdentifier>{2E063C33-DFF9-4E9F-835C-8FE3A0ADC2A1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\09. Camera Manager">
+      <UniqueIdentifier>{37530FD6-1A62-4095-9110-4C760993FF5B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\10. ScreenShot Manager">
+      <UniqueIdentifier>{0F9C7885-B6CB-45D2-8BBF-6F873B5B3DD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\11. Resource Manager">
+      <UniqueIdentifier>{0E04CE96-1628-4BD5-9AAC-8868716F2275}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\12. Light Manager">
+      <UniqueIdentifier>{545FA897-B621-4F7F-958C-9D301A60AD81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\13. Cell Manager">
+      <UniqueIdentifier>{B35E8936-B1A9-4FE0-815E-6BA19D53D29A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\14. Player Manager">
+      <UniqueIdentifier>{D629936E-F24C-46A1-A090-4CC45CD5B116}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\15. Collision Manager">
+      <UniqueIdentifier>{38E19EEF-1388-4ADA-85B0-6E733F0AA36E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\16. UI Manager">
+      <UniqueIdentifier>{BF26600A-808D-46E9-A4E3-822C1DEF2C74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\17. Font Manager">
+      <UniqueIdentifier>{449DA70E-F8EF-4825-B663-1151913132A7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\18. Sound Manager">
+      <UniqueIdentifier>{21B91706-635E-455C-885C-007483BCAFBF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\GameObject">
+      <UniqueIdentifier>{b4c9b5e4-c7d1-459f-a6b0-1a0b62324d43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Component\00. Component">
+      <UniqueIdentifier>{7C44DE9A-7210-4F2A-9527-33B74106FE5A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Component\01. VIBuffer">
+      <UniqueIdentifier>{3151EBAA-3AD0-4068-ABBE-80B3595AF7D6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Component\01. VIBuffer\00. Rect">
+      <UniqueIdentifier>{B871D410-B8E2-4CFA-B585-4D086294C51D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Resource">
+      <UniqueIdentifier>{22E04B7A-C325-43E5-998C-C466814208C9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Resource\Model">
+      <UniqueIdentifier>{A15545CA-0F59-4F7C-8C70-77D68960DEAD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Component\01. VIBuffer\01. Mesh">
+      <UniqueIdentifier>{D0E7F950-E570-489C-888B-22BD901ACD13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Component\02. Sprite Animator">
+      <UniqueIdentifier>{9EED09A4-A7B1-4A59-9B51-C941A21C79EE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Component\03. Transform"><UniqueIdentifier>{24C1A751-41BB-4ECA-8871-E0DB4D315906}</UniqueIdentifier></Filter>
+    <Filter Include="Utility\GameObject\Camera"><UniqueIdentifier>{7C9E2F41-BA46-44FB-960C-40B05A35AF84}</UniqueIdentifier></Filter>
+    <Filter Include="System\19. Loader"><UniqueIdentifier>{FD1667E5-BA09-45A5-ACB5-A02AFAC80EE8}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -35,6 +113,9 @@
     </ClInclude>
     <ClInclude Include="..\Private\CGraphicDevice.h">
       <Filter>System\01. Graphic Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Private\CDebugOverlay.h">
+      <Filter>System\00. Game Manager</Filter>
     </ClInclude>
     <ClInclude Include="..\Public\Engine_Define.h">
       <Filter>Default</Filter>
@@ -60,6 +141,94 @@
     <ClInclude Include="..\Public\CTimer.h">
       <Filter>System\02. Time Manager</Filter>
     </ClInclude>
+    <ClInclude Include="..\Public\CSceneManager.h">
+      <Filter>System\03. Scene Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CGameObjectManager.h">
+      <Filter>System\04. GameObject Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CPrototypeManager.h">
+      <Filter>System\05. Prototype Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CInputManager.h">
+      <Filter>System\06. Input Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CRenderManager.h">
+      <Filter>System\07. Render Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CRenderStateManager.h">
+      <Filter>System\07. Render Manager\RenderState Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CRenderTargetManager.h">
+      <Filter>System\08. RenderTarget Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CCameraManager.h">
+      <Filter>System\09. Camera Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CScreenShotManager.h">
+      <Filter>System\10. ScreenShot Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CResourceManager.h">
+      <Filter>System\11. Resource Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CLightManager.h">
+      <Filter>System\12. Light Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CCellManager.h">
+      <Filter>System\13. Cell Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CPlayerManager.h">
+      <Filter>System\14. Player Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CCollisionManager.h">
+      <Filter>System\15. Collision Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CUIManager.h">
+      <Filter>System\16. UI Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CFontManager.h">
+      <Filter>System\17. Font Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CSoundManager.h">
+      <Filter>System\18. Sound Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CGameObject.h">
+      <Filter>Utility\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CComponent.h">
+      <Filter>Utility\Component\00. Component</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CVIBuffer.h">
+      <Filter>Utility\Component\01. VIBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CVIBuffer_Rect.h">
+      <Filter>Utility\Component\01. VIBuffer\00. Rect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CVIBuffer_Terrain.h"><Filter>Utility\Component\01. VIBuffer</Filter></ClInclude>
+    <ClInclude Include="..\Public\CVIBuffer_Cube.h"><Filter>Utility\Component\01. VIBuffer</Filter></ClInclude>
+    <ClInclude Include="..\Public\CResource.h"><Filter>Utility\Resource</Filter></ClInclude>
+    <ClInclude Include="..\Public\CShader.h"><Filter>Utility\Resource</Filter></ClInclude>
+    <ClInclude Include="..\Public\CTexture.h"><Filter>Utility\Resource</Filter></ClInclude>
+    <ClInclude Include="..\Public\CMaterial.h"><Filter>Utility\Resource</Filter></ClInclude>
+    <ClInclude Include="..\Public\CModel.h"><Filter>Utility\Resource\Model</Filter></ClInclude>
+    <ClInclude Include="..\Public\CMesh.h"><Filter>Utility\Resource\Model</Filter></ClInclude>
+    <ClInclude Include="..\Public\CVIBuffer_Mesh.h"><Filter>Utility\Component\01. VIBuffer\01. Mesh</Filter></ClInclude>
+    <ClInclude Include="..\Public\CBone.h"><Filter>Utility\Resource\Model</Filter></ClInclude>
+    <ClInclude Include="..\Public\CChannel.h"><Filter>Utility\Resource\Model</Filter></ClInclude>
+    <ClInclude Include="..\Public\CAnimation.h"><Filter>Utility\Resource\Model</Filter></ClInclude>
+    <ClInclude Include="..\Public\CLayer.h"><Filter>Utility\GameObject</Filter></ClInclude>
+    <ClInclude Include="..\Public\CContainerObject.h"><Filter>Utility\GameObject</Filter></ClInclude>
+    <ClInclude Include="..\Public\CPartObject.h"><Filter>Utility\GameObject</Filter></ClInclude>
+    <ClInclude Include="..\Public\CScene.h"><Filter>System\03. Scene Manager</Filter></ClInclude>
+    <ClInclude Include="..\Public\CCollider.h"><Filter>System\15. Collision Manager</Filter></ClInclude>
+    <ClInclude Include="..\Public\CRenderTarget.h"><Filter>System\08. RenderTarget Manager</Filter></ClInclude>
+    <ClInclude Include="..\Public\CLight.h"><Filter>System\12. Light Manager</Filter></ClInclude>
+    <ClInclude Include="..\Public\CCell.h"><Filter>System\13. Cell Manager</Filter></ClInclude>
+    <ClInclude Include="..\Public\CSpriteAnimator.h"><Filter>Utility\Component\02. Sprite Animator</Filter></ClInclude>
+    <ClInclude Include="..\Public\CTransform.h"><Filter>Utility\Component\03. Transform</Filter></ClInclude>
+    <ClInclude Include="..\Public\CCameraObjectBase.h"><Filter>Utility\GameObject\Camera</Filter></ClInclude>
+    <ClInclude Include="..\Public\CDefaultCameraObject.h"><Filter>Utility\GameObject\Camera</Filter></ClInclude>
+    <ClInclude Include="..\Public\CLoader.h"><Filter>System\19. Loader</Filter></ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -74,6 +243,9 @@
     <ClCompile Include="..\Private\CGraphicDevice.cpp">
       <Filter>System\01. Graphic Device</Filter>
     </ClCompile>
+    <ClCompile Include="..\Private\CDebugOverlay.cpp">
+      <Filter>System\00. Game Manager</Filter>
+    </ClCompile>
     <ClCompile Include="..\Private\pch.cpp">
       <Filter>Default</Filter>
     </ClCompile>
@@ -83,5 +255,93 @@
     <ClCompile Include="..\Private\CTimer.cpp">
       <Filter>System\02. Time Manager</Filter>
     </ClCompile>
+    <ClCompile Include="..\Private\CSceneManager.cpp">
+      <Filter>System\03. Scene Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CGameObjectManager.cpp">
+      <Filter>System\04. GameObject Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CPrototypeManager.cpp">
+      <Filter>System\05. Prototype Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CInputManager.cpp">
+      <Filter>System\06. Input Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CRenderManager.cpp">
+      <Filter>System\07. Render Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CRenderStateManager.cpp">
+      <Filter>System\07. Render Manager\RenderState Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CRenderTargetManager.cpp">
+      <Filter>System\08. RenderTarget Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CCameraManager.cpp">
+      <Filter>System\09. Camera Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CScreenShotManager.cpp">
+      <Filter>System\10. ScreenShot Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CResourceManager.cpp">
+      <Filter>System\11. Resource Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CLightManager.cpp">
+      <Filter>System\12. Light Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CCellManager.cpp">
+      <Filter>System\13. Cell Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CPlayerManager.cpp">
+      <Filter>System\14. Player Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CCollisionManager.cpp">
+      <Filter>System\15. Collision Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CUIManager.cpp">
+      <Filter>System\16. UI Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CFontManager.cpp">
+      <Filter>System\17. Font Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CSoundManager.cpp">
+      <Filter>System\18. Sound Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CGameObject.cpp">
+      <Filter>Utility\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CComponent.cpp">
+      <Filter>Utility\Component\00. Component</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CVIBuffer.cpp">
+      <Filter>Utility\Component\01. VIBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CVIBuffer_Rect.cpp">
+      <Filter>Utility\Component\01. VIBuffer\00. Rect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CVIBuffer_Terrain.cpp"><Filter>Utility\Component\01. VIBuffer</Filter></ClCompile>
+    <ClCompile Include="..\Private\CVIBuffer_Cube.cpp"><Filter>Utility\Component\01. VIBuffer</Filter></ClCompile>
+    <ClCompile Include="..\Private\CResource.cpp"><Filter>Utility\Resource</Filter></ClCompile>
+    <ClCompile Include="..\Private\CShader.cpp"><Filter>Utility\Resource</Filter></ClCompile>
+    <ClCompile Include="..\Private\CTexture.cpp"><Filter>Utility\Resource</Filter></ClCompile>
+    <ClCompile Include="..\Private\CMaterial.cpp"><Filter>Utility\Resource</Filter></ClCompile>
+    <ClCompile Include="..\Private\CModel.cpp"><Filter>Utility\Resource\Model</Filter></ClCompile>
+    <ClCompile Include="..\Private\CMesh.cpp"><Filter>Utility\Resource\Model</Filter></ClCompile>
+    <ClCompile Include="..\Private\CVIBuffer_Mesh.cpp"><Filter>Utility\Component\01. VIBuffer\01. Mesh</Filter></ClCompile>
+    <ClCompile Include="..\Private\CBone.cpp"><Filter>Utility\Resource\Model</Filter></ClCompile>
+    <ClCompile Include="..\Private\CChannel.cpp"><Filter>Utility\Resource\Model</Filter></ClCompile>
+    <ClCompile Include="..\Private\CAnimation.cpp"><Filter>Utility\Resource\Model</Filter></ClCompile>
+    <ClCompile Include="..\Private\CLayer.cpp"><Filter>Utility\GameObject</Filter></ClCompile>
+    <ClCompile Include="..\Private\CContainerObject.cpp"><Filter>Utility\GameObject</Filter></ClCompile>
+    <ClCompile Include="..\Private\CPartObject.cpp"><Filter>Utility\GameObject</Filter></ClCompile>
+    <ClCompile Include="..\Private\CScene.cpp"><Filter>System\03. Scene Manager</Filter></ClCompile>
+    <ClCompile Include="..\Private\CCollider.cpp"><Filter>System\15. Collision Manager</Filter></ClCompile>
+    <ClCompile Include="..\Private\CRenderTarget.cpp"><Filter>System\08. RenderTarget Manager</Filter></ClCompile>
+    <ClCompile Include="..\Private\CLight.cpp"><Filter>System\12. Light Manager</Filter></ClCompile>
+    <ClCompile Include="..\Private\CCell.cpp"><Filter>System\13. Cell Manager</Filter></ClCompile>
+    <ClCompile Include="..\Private\CSpriteAnimator.cpp"><Filter>Utility\Component\02. Sprite Animator</Filter></ClCompile>
+    <ClCompile Include="..\Private\CTransform.cpp"><Filter>Utility\Component\03. Transform</Filter></ClCompile>
+    <ClCompile Include="..\Private\CCameraObjectBase.cpp"><Filter>Utility\GameObject\Camera</Filter></ClCompile>
+    <ClCompile Include="..\Private\CDefaultCameraObject.cpp"><Filter>Utility\GameObject\Camera</Filter></ClCompile>
+    <ClCompile Include="..\Private\CLoader.cpp"><Filter>System\19. Loader</Filter></ClCompile>
   </ItemGroup>
 </Project>

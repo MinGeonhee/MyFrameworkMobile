@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature
+        android:name="android.hardware.vulkan.level"
+        android:required="false"
+        android:version="1" />
+
+    <application
+        android:allowBackup="false"
+        android:hasCode="true"
+        android:label="MyFrameworkMobile"
+        android:resizeableActivity="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- Android 전용 실행 진입점이다. 기존 Windows Client의 wWinMain과 분리한다. -->
+        <activity
+            android:name="android.app.NativeActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize"
+            android:exported="true"
+            android:maxAspectRatio="2.4"
+            android:screenOrientation="landscape">
+
+            <!-- 아래 이름과 CMake에서 생성되는 libMyFrameworkMobileAndroid.so가 대응한다. -->
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="MyFrameworkMobileAndroid" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

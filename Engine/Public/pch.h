@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 
 #include "framework.h"
 
-#pragma region ÀÚ·á±¸Á¶ & STL
+#pragma region ìë£Œêµ¬ì¡° & STL
 #include <algorithm>
 
 #include <array>
@@ -16,7 +16,7 @@
 #include <set>
 #include <unordered_set>
 #pragma endregion
-#pragma region µ¥ÀÌÅÍ & ÆÄÀÏ
+#pragma region ë°ì´í„° & íŒŒì¼
 #include <filesystem>
 #include <fstream>
 #include <istream>
@@ -28,3 +28,19 @@
 #include "Engine_Enum.h"
 #include "Engine_Funtion.h"
 #include "Engine_Struct.h"
+
+
+#pragma region
+#include "Common/interface/RefCntAutoPtr.hpp"
+#include "Graphics/GraphicsEngine/interface/DeviceContext.h"
+#include "Graphics/GraphicsEngine/interface/RenderDevice.h"
+#include "Graphics/GraphicsEngine/interface/SwapChain.h"
+
+using Device = Diligent::IRenderDevice;
+using Context = Diligent::IDeviceContext;
+#pragma endregion
+
+
+using namespace Diligent;
+using namespace std;
+

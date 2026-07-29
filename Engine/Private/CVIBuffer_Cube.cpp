@@ -1,0 +1,5 @@
+#include "pch.h"
+#include "CVIBuffer_Cube.h"
+CVIBuffer_Cube::CVIBuffer_Cube(Device*d,Context*c):CVIBuffer{d,c}{} CVIBuffer_Cube::CVIBuffer_Cube(const CVIBuffer_Cube&p):CVIBuffer{p}{}
+HRESULT CVIBuffer_Cube::Proto_Initialize(){constexpr Engine::VTXPOSTEX v[]={{{-1,-1,-1},{0,0}},{{-1,1,-1},{0,0}},{{1,1,-1},{0,0}},{{1,-1,-1},{0,0}},{{-1,-1,1},{0,0}},{{-1,1,1},{0,0}},{{1,1,1},{0,0}},{{1,-1,1},{0,0}}};constexpr uint16 i[]={0,1,2,0,2,3,7,6,5,7,5,4,4,5,1,4,1,0,3,2,6,3,6,7,1,5,6,1,6,2,4,0,3,4,3,7};return CVIBuffer::Proto_Initialize(v,sizeof(v),sizeof(Engine::VTXPOSTEX),8,i,sizeof(i),Diligent::VT_UINT16,36,Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);}
+HRESULT CVIBuffer_Cube::Clone_Initialize(void*a){return CVIBuffer::Clone_Initialize(a);} CVIBuffer_Cube* CVIBuffer_Cube::Create(Device*d,Context*c){auto*p=new CVIBuffer_Cube{d,c};if(FAILED(p->Proto_Initialize())){p->Release();return nullptr;}return p;} CComponent* CVIBuffer_Cube::Clone(void*a){auto*p=new CVIBuffer_Cube{*this};if(FAILED(p->Clone_Initialize(a))){p->Release();return nullptr;}return p;} void CVIBuffer_Cube::Free(){CVIBuffer::Free();}

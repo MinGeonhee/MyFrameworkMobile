@@ -1,10 +1,19 @@
+﻿#if defined(_WIN32)
 #include "pch.h"
-#include "CGraphicDevice.h"
-#include "Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h"
-#include "Graphics/GraphicsEngineVulkan/interface/EngineFactoryVk.h"
-#include "Platforms/Win32/interface/Win32NativeWindow.h"
+#endif
 
-HRESULT CGraphicDevice::Initialize(const Engine_Desc& tEngineDesc)
+#include "CGraphicDevice.h"
+
+#if defined(_WIN32)
+#include "Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h"
+#include "Platforms/Win32/interface/Win32NativeWindow.h"
+#elif defined(__ANDROID__)
+#include "Platforms/Android/interface/AndroidNativeWindow.h"
+#endif
+
+#include "Graphics/GraphicsEngineVulkan/interface/EngineFactoryVk.h"
+
+HRESULT CGraphicDevice::Initialize(const Engine::Engine_Desc& tEngineDesc)
 {
     if (tEngineDesc.pNativeWindow == nullptr)
         return E_FAIL;
@@ -14,7 +23,12 @@ HRESULT CGraphicDevice::Initialize(const Engine_Desc& tEngineDesc)
     switch (m_tEngineDesc.eGraphicAPI)
     {
     case GRAPHIC_API::D3D11:
+#if defined(_WIN32)
         return Initialize_DirectX11();
+#else
+        // Android?먯꽌??D3D11??吏?먰븯吏 ?딅뒗??
+        return E_FAIL;
+#endif
 
     case GRAPHIC_API::VULKAN:
         return Initialize_Vulkan();
@@ -42,10 +56,24 @@ HRESULT CGraphicDevice::Initialize_Vulkan()
         return E_FAIL;
 
     Diligent::SwapChainDesc SwapChainDesc{};
-    SwapChainDesc.Width = m_tEngineDesc.iWinSizeX;
+    SwapChainDesc.Width  = m_tEngineDesc.iWinSizeX;
     SwapChainDesc.Height = m_tEngineDesc.iWinSizeY;
 
+#if defined(__ANDROID__)
+    // ?ㅼ젣 Surface ?ш린? ?뚯쟾 ?곹깭??Diligent媛 ANativeWindow?먯꽌 議고쉶?쒕떎.
+    SwapChainDesc.Width        = 0;
+    SwapChainDesc.Height       = 0;
+    // Android Surface 회전을 Diligent가 자동 보정하면 SwapChain 크기와
+    // 실제 NativeWindow 크기가 달라질 수 있다. 엔진 카메라/뷰포트 비율은
+    // NativeWindow 기준으로 관리하기 위해 Identity transform을 사용한다.
+    SwapChainDesc.PreTransform = Diligent::SURFACE_TRANSFORM_IDENTITY;
+
+    Diligent::AndroidNativeWindow NativeWindow{};
+    NativeWindow.pAWindow = m_tEngineDesc.pNativeWindow;
+#else
     const Diligent::Win32NativeWindow NativeWindow{m_tEngineDesc.pNativeWindow};
+#endif
+
     pEngineFactory->CreateSwapChainVk(
         m_pDevice,
         m_pDeviceContext,
@@ -53,9 +81,16 @@ HRESULT CGraphicDevice::Initialize_Vulkan()
         NativeWindow,
         &m_pSwapChain);
 
-    return m_pSwapChain != nullptr ? S_OK : E_FAIL;
+    if (m_pSwapChain == nullptr)
+        return E_FAIL;
+
+    const auto& Desc = m_pSwapChain->GetDesc();
+    m_tEngineDesc.iWinSizeX = Desc.Width;
+    m_tEngineDesc.iWinSizeY = Desc.Height;
+    return S_OK;
 }
 
+#if defined(_WIN32)
 HRESULT CGraphicDevice::Initialize_DirectX11()
 {
     Diligent::IEngineFactoryD3D11* pEngineFactory = Diligent::LoadAndGetEngineFactoryD3D11();
@@ -88,13 +123,14 @@ HRESULT CGraphicDevice::Initialize_DirectX11()
 
     return m_pSwapChain != nullptr ? S_OK : E_FAIL;
 }
+#endif
 
 void CGraphicDevice::Begin_Render()
 {
     if (m_pDeviceContext == nullptr || m_pSwapChain == nullptr)
         return;
 
-    constexpr float vClearColor[] = {1.f,0.f,0.f, 1.f};
+    constexpr float vClearColor[] = {1.f, 0.f, 0.f, 1.f};
     auto* pRenderTarget = m_pSwapChain->GetCurrentBackBufferRTV();
     auto* pDepthTarget = m_pSwapChain->GetDepthBufferDSV();
 
@@ -128,10 +164,31 @@ void CGraphicDevice::End_Render()
 
 void CGraphicDevice::Resize(uint32 iWinSizeX, uint32 iWinSizeY)
 {
-    if (m_pSwapChain == nullptr || iWinSizeX == 0 || iWinSizeY == 0)
+    if (m_pSwapChain == nullptr)
+        return;
+
+#if defined(__ANDROID__)
+    if (iWinSizeX == 0 || iWinSizeY == 0)
+        return;
+
+    // Android에서는 NativeWindow 크기를 매 프레임 확인하지만,
+    // SwapChain Resize는 실제 크기가 바뀔 때만 호출해야 한다.
+    // 매 프레임 Resize하면 백버퍼 재생성 비용 때문에 FPS가 크게 떨어진다.
+    if (m_tEngineDesc.iWinSizeX == iWinSizeX && m_tEngineDesc.iWinSizeY == iWinSizeY)
+        return;
+
+    // ?뚯쟾 ?대깽???꾨떖 ?쒖꽌媛 湲곌린留덈떎 ?щ씪 留??꾨젅??Surface ?곹깭瑜??ы솗?명븳??
+    m_pSwapChain->Resize(iWinSizeX, iWinSizeY, Diligent::SURFACE_TRANSFORM_IDENTITY);
+    const auto& Desc = m_pSwapChain->GetDesc();
+    m_tEngineDesc.iWinSizeX = Desc.Width;
+    m_tEngineDesc.iWinSizeY = Desc.Height;
+#else
+    if (iWinSizeX == 0 || iWinSizeY == 0)
         return;
 
     m_tEngineDesc.iWinSizeX = iWinSizeX;
     m_tEngineDesc.iWinSizeY = iWinSizeY;
     m_pSwapChain->Resize(iWinSizeX, iWinSizeY);
+#endif
 }
+

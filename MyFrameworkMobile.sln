@@ -1,12 +1,19 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Default\Engine.vcxproj", "{89D9980A-34B8-4D49-9A14-CE49928DA151}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Game", "Game\Default\Game.vcxproj", "{5B869776-DB88-4FF1-932C-78114E6C748B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{89D9980A-34B8-4D49-9A14-CE49928DA151} = {89D9980A-34B8-4D49-9A14-CE49928DA151}
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client", "Client\Default\Client.vcxproj", "{BBAC117D-B741-431E-9F40-EB35159E70E2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{89D9980A-34B8-4D49-9A14-CE49928DA151} = {89D9980A-34B8-4D49-9A14-CE49928DA151}
+		{5B869776-DB88-4FF1-932C-78114E6C748B} = {5B869776-DB88-4FF1-932C-78114E6C748B}
 	EndProjectSection
 EndProject
 Global
@@ -19,6 +26,10 @@ Global
 		{89D9980A-34B8-4D49-9A14-CE49928DA151}.Debug|x64.Build.0 = Debug|x64
 		{89D9980A-34B8-4D49-9A14-CE49928DA151}.Release|x64.ActiveCfg = Release|x64
 		{89D9980A-34B8-4D49-9A14-CE49928DA151}.Release|x64.Build.0 = Release|x64
+		{5B869776-DB88-4FF1-932C-78114E6C748B}.Debug|x64.ActiveCfg = Debug|x64
+		{5B869776-DB88-4FF1-932C-78114E6C748B}.Debug|x64.Build.0 = Debug|x64
+		{5B869776-DB88-4FF1-932C-78114E6C748B}.Release|x64.ActiveCfg = Release|x64
+		{5B869776-DB88-4FF1-932C-78114E6C748B}.Release|x64.Build.0 = Release|x64
 		{BBAC117D-B741-431E-9F40-EB35159E70E2}.Debug|x64.ActiveCfg = Debug|x64
 		{BBAC117D-B741-431E-9F40-EB35159E70E2}.Debug|x64.Build.0 = Debug|x64
 		{BBAC117D-B741-431E-9F40-EB35159E70E2}.Release|x64.ActiveCfg = Release|x64
@@ -28,4 +39,3 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
-
