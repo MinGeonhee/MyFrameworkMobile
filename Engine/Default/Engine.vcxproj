@@ -44,14 +44,14 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>ENGINE_EXPORTS;PLATFORM_WIN32=1;DILIGENT_VK_SHARED=1;DILIGENT_D3D11_SHARED=1;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\Public;..\Private;..\..\Library\DiligentEngine\DiligentCore;..\..\Library\DiligentEngine\DiligentTools\ThirdParty\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ENGINE_EXPORTS;PLATFORM_WIN32=1;DILIGENT_VK_SHARED=1;DILIGENT_D3D11_SHARED=1;_WINDOWS;_USRDLL;IMGUI_API=__declspec(dllexport);_CRT_SECURE_NO_WARNINGS;_HAS_STD_BYTE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\Public;..\Private;..\..\Library\DirectXMath\Inc;..\..\Library\ImGui;..\..\Library\Fmod\Inc;..\..\Library\DiligentEngine\DiligentCore;..\..\Library\DiligentEngine\DiligentTools\ThirdParty\stb;..\..\Library\DiligentEngine\DiligentTools\ThirdParty\json\single_include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
       <!-- DLL 외부에는 STL 멤버를 직접 노출하지 않고 CGameManager 파사드를 사용한다. -->
-      <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4251;4275;4244;4267;4305;4838;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -61,13 +61,18 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\..\Library\Fmod\Lib\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(ProjectDir)..\..\EngineSDK\Inc" mkdir "$(ProjectDir)..\..\EngineSDK\Inc"
 if not exist "$(ProjectDir)..\..\EngineSDK\Lib\$(Configuration)" mkdir "$(ProjectDir)..\..\EngineSDK\Lib\$(Configuration)"
 if not exist "$(ProjectDir)..\..\Client\Bin\$(Configuration)" mkdir "$(ProjectDir)..\..\Client\Bin\$(Configuration)"
 xcopy /y /s "$(ProjectDir)..\Public\*.*" "$(ProjectDir)..\..\EngineSDK\Inc\"
+xcopy /y "$(ProjectDir)..\..\Library\ImGui\*.h" "$(ProjectDir)..\..\EngineSDK\Inc\"
 copy /y "$(TargetPath)" "$(ProjectDir)..\..\Client\Bin\$(Configuration)\"
+copy /y "$(ProjectDir)..\..\Library\Fmod\Lib\Win64\fmod.dll" "$(ProjectDir)..\..\Client\Bin\$(Configuration)\"
+copy /y "$(ProjectDir)..\..\Library\Fmod\Lib\Win64\fmodL.dll" "$(ProjectDir)..\..\Client\Bin\$(Configuration)\"
 copy /y "$(TargetDir)$(TargetName).lib" "$(ProjectDir)..\..\EngineSDK\Lib\$(Configuration)\"
 if "$(Configuration)"=="Debug" if exist "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineVulkan\Debug\GraphicsEngineVk_64d.dll" copy /y "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineVulkan\Debug\GraphicsEngineVk_64d.dll" "$(ProjectDir)..\..\Client\Bin\$(Configuration)\"
 if "$(Configuration)"=="Debug" if exist "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineD3D11\Debug\GraphicsEngineD3D11_64d.dll" copy /y "$(ProjectDir)..\..\Library\DiligentEngine\Build\DiligentCore\Graphics\GraphicsEngineD3D11\Debug\GraphicsEngineD3D11_64d.dll" "$(ProjectDir)..\..\Client\Bin\$(Configuration)\"
@@ -76,125 +81,260 @@ if "$(Configuration)"=="Release" if exist "$(ProjectDir)..\..\Library\DiligentEn
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Public\Button.h" />
+    <ClInclude Include="..\Public\CAnimation.h" />
     <ClInclude Include="..\Public\CBase.h" />
+    <ClInclude Include="..\Public\CBlendState.h" />
+    <ClInclude Include="..\Public\CBone.h" />
+    <ClInclude Include="..\Public\CBounding.h" />
+    <ClInclude Include="..\Public\CBounding_AABB.h" />
+    <ClInclude Include="..\Public\CBounding_OBB.h" />
+    <ClInclude Include="..\Public\CBounding_Sphere.h" />
+    <ClInclude Include="..\Public\CCalulator.h" />
+    <ClInclude Include="..\Public\CCameraComponent.h" />
+    <ClInclude Include="..\Public\CCameraManager.h" />
+    <ClInclude Include="..\Public\CCameraObjectBase.h" />
+    <ClInclude Include="..\Public\CCameraObjectInfoWindow.h" />
+    <ClInclude Include="..\Public\CCanvas.h" />
+    <ClInclude Include="..\Public\CCell.h" />
+    <ClInclude Include="..\Public\CCellManager.h" />
+    <ClInclude Include="..\Public\CChannel.h" />
+    <ClInclude Include="..\Public\CCollider.h" />
+    <ClInclude Include="..\Public\CCollisionManager.h" />
+    <ClInclude Include="..\Public\CComponent.h" />
+    <ClInclude Include="..\Public\CConstantBuffer.h" />
+    <ClInclude Include="..\Public\CContainerObject.h" />
+    <ClInclude Include="..\Public\CDefaultCameraObject.h" />
+    <ClInclude Include="..\Public\CDepthstencilState.h" />
+    <ClInclude Include="..\Public\CEventBus.h" />
+    <ClInclude Include="..\Public\CFile.h" />
+    <ClInclude Include="..\Public\CFileFunction.h" />
+    <ClInclude Include="..\Public\CFilePath.h" />
+    <ClInclude Include="..\Public\CFloder.h" />
+    <ClInclude Include="..\Public\CFont.h" />
+    <ClInclude Include="..\Public\CFontManager.h" />
     <ClInclude Include="..\Public\CGameManager.h" />
     <ClInclude Include="..\Public\CGameObject.h" />
-    <ClInclude Include="..\Public\CTimeManger.h" />
-    <ClInclude Include="..\Public\CTimer.h" />
-    <ClInclude Include="..\Public\Engine_Define.h" />
-    <ClInclude Include="..\Public\Engine_Enum.h" />
-    <ClInclude Include="..\Public\Engine_Macro.h" />
-    <ClInclude Include="..\Public\Engine_Struct.h" />
-    <ClInclude Include="..\Public\pch.h" />
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="..\Private\CGraphicDevice.h" />
-    <ClInclude Include="..\Private\CDebugOverlay.h" />
-    <ClInclude Include="Engine_Funtion.h" />
-    <ClInclude Include="..\Public\CSceneManager.h" />
+    <ClInclude Include="..\Public\CGameObjectInfoWindow.h" />
     <ClInclude Include="..\Public\CGameObjectManager.h" />
-    <ClInclude Include="..\Public\CPrototypeManager.h" />
+    <ClInclude Include="..\Public\CGeometry.h" />
+    <ClInclude Include="..\Public\CGeometryHelper.h" />
+    <ClInclude Include="..\Public\CGraphicDevice.h" />
+    <ClInclude Include="..\Public\CImGuiFunctionBase.h" />
+    <ClInclude Include="..\Public\CImGuiFuntion.h" />
+    <ClInclude Include="..\Public\CImGuiManager.h" />
+    <ClInclude Include="..\Public\CImGuiWindow.h" />
     <ClInclude Include="..\Public\CInputManager.h" />
-    <ClInclude Include="..\Public\CRenderManager.h" />
-    <ClInclude Include="..\Public\CRenderStateManager.h" />
-    <ClInclude Include="..\Public\CRenderTargetManager.h" />
-    <ClInclude Include="..\Public\CCameraManager.h" />
-    <ClInclude Include="..\Public\CScreenShotManager.h" />
-    <ClInclude Include="..\Public\CResourceManager.h" />
+    <ClInclude Include="..\Public\CJsonFunction.h" />
+    <ClInclude Include="..\Public\CLayer.h" />
+    <ClInclude Include="..\Public\CLight.h" />
+    <ClInclude Include="..\Public\CLightInfoWindow.h" />
     <ClInclude Include="..\Public\CLightManager.h" />
-    <ClInclude Include="..\Public\CCellManager.h" />
-    <ClInclude Include="..\Public\CPlayerManager.h" />
-    <ClInclude Include="..\Public\CCollisionManager.h" />
-    <ClInclude Include="..\Public\CUIManager.h" />
-    <ClInclude Include="..\Public\CFontManager.h" />
-    <ClInclude Include="..\Public\CSoundManager.h" />
-    <ClInclude Include="..\Public\CComponent.h" />
-    <ClInclude Include="..\Public\CVIBuffer.h" />
-    <ClInclude Include="..\Public\CVIBuffer_Rect.h" />
-    <ClInclude Include="..\Public\CVIBuffer_Terrain.h" />
-    <ClInclude Include="..\Public\CVIBuffer_Cube.h" />
-    <ClInclude Include="..\Public\CResource.h" />
-    <ClInclude Include="..\Public\CShader.h" />
-    <ClInclude Include="..\Public\CTexture.h" />
     <ClInclude Include="..\Public\CMaterial.h" />
-    <ClInclude Include="..\Public\CVIBuffer_Mesh.h" />
     <ClInclude Include="..\Public\CMesh.h" />
     <ClInclude Include="..\Public\CModel.h" />
-    <ClInclude Include="..\Public\CBone.h" />
-    <ClInclude Include="..\Public\CChannel.h" />
-    <ClInclude Include="..\Public\CAnimation.h" />
-    <ClInclude Include="..\Public\CLayer.h" />
-    <ClInclude Include="..\Public\CContainerObject.h" />
+    <ClInclude Include="..\Public\CNavigation.h" />
     <ClInclude Include="..\Public\CPartObject.h" />
-    <ClInclude Include="..\Public\CScene.h" />
-    <ClInclude Include="..\Public\CCollider.h" />
+    <ClInclude Include="..\Public\CPipeLine.h" />
+    <ClInclude Include="..\Public\CPlayerManager.h" />
+    <ClInclude Include="..\Public\CPrototypeManager.h" />
+    <ClInclude Include="..\Public\CRasterizerState.h" />
+    <ClInclude Include="..\Public\CRenderManager.h" />
+    <ClInclude Include="..\Public\CRenderState.h" />
+    <ClInclude Include="..\Public\CRenderStateManager.h" />
     <ClInclude Include="..\Public\CRenderTarget.h" />
-    <ClInclude Include="..\Public\CLight.h" />
-    <ClInclude Include="..\Public\CCell.h" />
-    <ClInclude Include="..\Public\CSpriteAnimator.h" />
+    <ClInclude Include="..\Public\CRenderTargetManager.h" />
+    <ClInclude Include="..\Public\CResource.h" />
+    <ClInclude Include="..\Public\CResourceManager.h" />
+    <ClInclude Include="..\Public\CSamplerState.h" />
+    <ClInclude Include="..\Public\CScene.h" />
+    <ClInclude Include="..\Public\CSceneManager.h" />
+    <ClInclude Include="..\Public\CScreenFadeUI.h" />
+    <ClInclude Include="..\Public\CScreenShot.h" />
+    <ClInclude Include="..\Public\CScreenShotManager.h" />
+    <ClInclude Include="..\Public\CShader.h" />
+    <ClInclude Include="..\Public\CSoundManager.h" />
+    <ClInclude Include="..\Public\CTexture.h" />
+    <ClInclude Include="..\Public\CTimeManger.h" />
+    <ClInclude Include="..\Public\CTimer.h" />
     <ClInclude Include="..\Public\CTransform.h" />
-    <ClInclude Include="..\Public\CCameraObjectBase.h" />
-    <ClInclude Include="..\Public\CDefaultCameraObject.h" />
-    <ClInclude Include="..\Public\CLoader.h" />
+    <ClInclude Include="..\Public\CUICameraObject.h" />
+    <ClInclude Include="..\Public\CUIComponent.h" />
+    <ClInclude Include="..\Public\CUILayer.h" />
+    <ClInclude Include="..\Public\CUIManager.h" />
+    <ClInclude Include="..\Public\CUIObject.h" />
+    <ClInclude Include="..\Public\CUITransform.h" />
+    <ClInclude Include="..\Public\CUI_Animation.h" />
+    <ClInclude Include="..\Public\CUI_Image.h" />
+    <ClInclude Include="..\Public\CUI_Quad.h" />
+    <ClInclude Include="..\Public\CUI_Text.h" />
+    <ClInclude Include="..\Public\CVIBuffer.h" />
+    <ClInclude Include="..\Public\CVIBuffer_Cell.h" />
+    <ClInclude Include="..\Public\CVIBuffer_ColliderBox.h" />
+    <ClInclude Include="..\Public\CVIBuffer_Mesh.h" />
+    <ClInclude Include="..\Public\CVIBuffer_Particle.h" />
+    <ClInclude Include="..\Public\CVIBuffer_Particle_Point.h" />
+    <ClInclude Include="..\Public\CVIBuffer_Particle_Rect.h" />
+    <ClInclude Include="..\Public\CVIBuffer_Rect.h" />
+    <ClInclude Include="..\Public\CVIBuffer_Terrain.h" />
+    <ClInclude Include="..\Public\ConstantBufferData.h" />
+    <ClInclude Include="..\Public\DebugDraw.h" />
+    <ClInclude Include="..\Public\DirectXTK_Compat.h" />
+    <ClInclude Include="..\Public\Engine_Define.h" />
+    <ClInclude Include="..\Public\Engine_Enum.h" />
+    <ClInclude Include="..\Public\Engine_FileIO.h" />
+    <ClInclude Include="..\Public\Engine_Function.h" />
+    <ClInclude Include="..\Public\Engine_Macro.h" />
+    <ClInclude Include="..\Public\Engine_Platform.h" />
+    <ClInclude Include="..\Public\Engine_Struct.h" />
+    <ClInclude Include="..\Public\Engine_Typedef.h" />
+    <ClInclude Include="..\Public\EnumRadioButton.h" />
+    <ClInclude Include="..\Public\EnumUtils.h" />
+    <ClInclude Include="..\Public\MyImGuiHeader.h" />
+    <ClInclude Include="..\Public\Slider_Float.h" />
+    <ClInclude Include="..\Public\VertexData.h" />
+    <ClInclude Include="..\Public\imgui_impl_diligent.h" />
+    <ClInclude Include="..\Public\pch.h" />
+    <ClInclude Include="..\Private\BCDecoder.h" />
+    <ClInclude Include="framework.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Private\CGameObject.cpp" />
-    <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="..\Private\pch.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-      <ForcedIncludeFiles>
-      </ForcedIncludeFiles>
-    </ClCompile>
+    <ClCompile Include="..\Private\BCDecoder.cpp" />
+    <ClCompile Include="..\Private\Button.cpp" />
+    <ClCompile Include="..\Private\CAnimation.cpp" />
     <ClCompile Include="..\Private\CBase.cpp" />
-    <ClCompile Include="..\Private\CGameManager.cpp" />
-    <ClCompile Include="..\Private\CGraphicDevice.cpp" />
-    <ClCompile Include="..\Private\CDebugOverlay.cpp" />
-    <ClCompile Include="..\Private\CTimeManger.cpp" />
-    <ClCompile Include="..\Private\CTimer.cpp" />
-    <ClCompile Include="..\Private\CSceneManager.cpp" />
-    <ClCompile Include="..\Private\CGameObjectManager.cpp" />
-    <ClCompile Include="..\Private\CPrototypeManager.cpp" />
-    <ClCompile Include="..\Private\CInputManager.cpp" />
-    <ClCompile Include="..\Private\CRenderManager.cpp" />
-    <ClCompile Include="..\Private\CRenderStateManager.cpp" />
-    <ClCompile Include="..\Private\CRenderTargetManager.cpp" />
+    <ClCompile Include="..\Private\CBlendState.cpp" />
+    <ClCompile Include="..\Private\CBone.cpp" />
+    <ClCompile Include="..\Private\CBounding.cpp" />
+    <ClCompile Include="..\Private\CBounding_AABB.cpp" />
+    <ClCompile Include="..\Private\CBounding_OBB.cpp" />
+    <ClCompile Include="..\Private\CBounding_Sphere.cpp" />
+    <ClCompile Include="..\Private\CCalulator.cpp" />
+    <ClCompile Include="..\Private\CCameraComponent.cpp" />
     <ClCompile Include="..\Private\CCameraManager.cpp" />
-    <ClCompile Include="..\Private\CScreenShotManager.cpp" />
-    <ClCompile Include="..\Private\CResourceManager.cpp" />
-    <ClCompile Include="..\Private\CLightManager.cpp" />
+    <ClCompile Include="..\Private\CCameraObjectBase.cpp" />
+    <ClCompile Include="..\Private\CCameraObjectInfoWindow.cpp" />
+    <ClCompile Include="..\Private\CCanvas.cpp" />
+    <ClCompile Include="..\Private\CCell.cpp" />
     <ClCompile Include="..\Private\CCellManager.cpp" />
-    <ClCompile Include="..\Private\CPlayerManager.cpp" />
+    <ClCompile Include="..\Private\CChannel.cpp" />
+    <ClCompile Include="..\Private\CCollider.cpp" />
     <ClCompile Include="..\Private\CCollisionManager.cpp" />
-    <ClCompile Include="..\Private\CUIManager.cpp" />
-    <ClCompile Include="..\Private\CFontManager.cpp" />
-    <ClCompile Include="..\Private\CSoundManager.cpp" />
     <ClCompile Include="..\Private\CComponent.cpp" />
-    <ClCompile Include="..\Private\CVIBuffer.cpp" />
-    <ClCompile Include="..\Private\CVIBuffer_Rect.cpp" />
-    <ClCompile Include="..\Private\CVIBuffer_Terrain.cpp" />
-    <ClCompile Include="..\Private\CVIBuffer_Cube.cpp" />
-    <ClCompile Include="..\Private\CResource.cpp" />
-    <ClCompile Include="..\Private\CShader.cpp" />
-    <ClCompile Include="..\Private\CTexture.cpp" />
+    <ClCompile Include="..\Private\CConstantBuffer.cpp" />
+    <ClCompile Include="..\Private\CContainerObject.cpp" />
+    <ClCompile Include="..\Private\CDefaultCameraObject.cpp" />
+    <ClCompile Include="..\Private\CDepthstencilState.cpp" />
+    <ClCompile Include="..\Private\CEventBus.cpp" />
+    <ClCompile Include="..\Private\CFile.cpp" />
+    <ClCompile Include="..\Private\CFileFunction.cpp" />
+    <ClCompile Include="..\Private\CFilePath.cpp" />
+    <ClCompile Include="..\Private\CFloder.cpp" />
+    <ClCompile Include="..\Private\CFont.cpp" />
+    <ClCompile Include="..\Private\CFontManager.cpp" />
+    <ClCompile Include="..\Private\CGameManager.cpp" />
+    <ClCompile Include="..\Private\CGameObject.cpp" />
+    <ClCompile Include="..\Private\CGameObjectInfoWindow.cpp" />
+    <ClCompile Include="..\Private\CGameObjectManager.cpp" />
+    <ClCompile Include="..\Private\CGraphicDevice.cpp" />
+    <ClCompile Include="..\Private\CImGuiFunctionBase.cpp" />
+    <ClCompile Include="..\Private\CImGuiFuntion.cpp" />
+    <ClCompile Include="..\Private\CImGuiManager.cpp" />
+    <ClCompile Include="..\Private\CImGuiWindow.cpp" />
+    <ClCompile Include="..\Private\CInputManager.cpp" />
+    <ClCompile Include="..\Private\CJsonFunction.cpp" />
+    <ClCompile Include="..\Private\CLayer.cpp" />
+    <ClCompile Include="..\Private\CLight.cpp" />
+    <ClCompile Include="..\Private\CLightInfoWindow.cpp" />
+    <ClCompile Include="..\Private\CLightManager.cpp" />
     <ClCompile Include="..\Private\CMaterial.cpp" />
-    <ClCompile Include="..\Private\CVIBuffer_Mesh.cpp" />
     <ClCompile Include="..\Private\CMesh.cpp" />
     <ClCompile Include="..\Private\CModel.cpp" />
-    <ClCompile Include="..\Private\CBone.cpp" />
-    <ClCompile Include="..\Private\CChannel.cpp" />
-    <ClCompile Include="..\Private\CAnimation.cpp" />
-    <ClCompile Include="..\Private\CLayer.cpp" />
-    <ClCompile Include="..\Private\CContainerObject.cpp" />
+    <ClCompile Include="..\Private\CNavigation.cpp" />
     <ClCompile Include="..\Private\CPartObject.cpp" />
-    <ClCompile Include="..\Private\CScene.cpp" />
-    <ClCompile Include="..\Private\CCollider.cpp" />
+    <ClCompile Include="..\Private\CPipeLine.cpp" />
+    <ClCompile Include="..\Private\CPlayerManager.cpp" />
+    <ClCompile Include="..\Private\CPrototypeManager.cpp" />
+    <ClCompile Include="..\Private\CRasterizerState.cpp" />
+    <ClCompile Include="..\Private\CRenderManager.cpp" />
+    <ClCompile Include="..\Private\CRenderState.cpp" />
+    <ClCompile Include="..\Private\CRenderStateManager.cpp" />
     <ClCompile Include="..\Private\CRenderTarget.cpp" />
-    <ClCompile Include="..\Private\CLight.cpp" />
-    <ClCompile Include="..\Private\CCell.cpp" />
-    <ClCompile Include="..\Private\CSpriteAnimator.cpp" />
+    <ClCompile Include="..\Private\CRenderTargetManager.cpp" />
+    <ClCompile Include="..\Private\CResource.cpp" />
+    <ClCompile Include="..\Private\CResourceManager.cpp" />
+    <ClCompile Include="..\Private\CSamplerState.cpp" />
+    <ClCompile Include="..\Private\CScene.cpp" />
+    <ClCompile Include="..\Private\CSceneManager.cpp" />
+    <ClCompile Include="..\Private\CScreenFadeUI.cpp" />
+    <ClCompile Include="..\Private\CScreenShot.cpp" />
+    <ClCompile Include="..\Private\CScreenShotManager.cpp" />
+    <ClCompile Include="..\Private\CShader.cpp" />
+    <ClCompile Include="..\Private\CSoundManager.cpp" />
+    <ClCompile Include="..\Private\CTexture.cpp" />
+    <ClCompile Include="..\Private\CTimeManger.cpp" />
+    <ClCompile Include="..\Private\CTimer.cpp" />
     <ClCompile Include="..\Private\CTransform.cpp" />
-    <ClCompile Include="..\Private\CCameraObjectBase.cpp" />
-    <ClCompile Include="..\Private\CDefaultCameraObject.cpp" />
-    <ClCompile Include="..\Private\CLoader.cpp" />
+    <ClCompile Include="..\Private\CUICameraObject.cpp" />
+    <ClCompile Include="..\Private\CUIComponent.cpp" />
+    <ClCompile Include="..\Private\CUILayer.cpp" />
+    <ClCompile Include="..\Private\CUIManager.cpp" />
+    <ClCompile Include="..\Private\CUIObject.cpp" />
+    <ClCompile Include="..\Private\CUITransform.cpp" />
+    <ClCompile Include="..\Private\CUI_Animation.cpp" />
+    <ClCompile Include="..\Private\CUI_Image.cpp" />
+    <ClCompile Include="..\Private\CUI_Quad.cpp" />
+    <ClCompile Include="..\Private\CUI_Text.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_Cell.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_ColliderBox.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_Mesh.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_Particle.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_Particle_Point.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_Particle_Rect.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_Rect.cpp" />
+    <ClCompile Include="..\Private\CVIBuffer_Terrain.cpp" />
+    <ClCompile Include="..\Private\ConstantBufferData.cpp" />
+    <ClCompile Include="..\Private\DebugDraw.cpp" />
+    <ClCompile Include="..\Private\DirectXTK_Compat.cpp" />
+    <ClCompile Include="..\Private\DirectXTK_SpriteFont.cpp" />
+    <ClCompile Include="..\Private\Engine_FileIO.cpp" />
+    <ClCompile Include="..\Private\EnumRadioButton.cpp" />
+    <ClCompile Include="..\Private\EnumUtils.cpp" />
+    <ClCompile Include="..\Private\Slider_Float.cpp" />
+    <ClCompile Include="..\Private\imgui_impl_diligent.cpp" />
+    <ClCompile Include="..\Private\pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="..\..\Library\ImGui\imgui.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\Library\ImGui\imgui_draw.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\Library\ImGui\imgui_tables.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\Library\ImGui\imgui_widgets.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\Library\ImGui\imgui_demo.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\Library\ImGui\imgui_stdlib.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\Library\ImGui\imgui_impl_win32.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles></ForcedIncludeFiles>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

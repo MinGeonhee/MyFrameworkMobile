@@ -1,17 +1,39 @@
 #pragma once
 #include "CBase.h"
-#include "Engine_Struct.h"
-#include <functional>
-class ENGINE_DLL CFontManager final : public CBase
+
+namespace Engine
 {
-public: using DrawHandler=std::function<HRESULT(const Engine::FONT_DESC&,const std::wstring&,float,float,const float[4])>;
-private:CFontManager()=default;
+	class CFont;
+}
+
+
+NS_BEGIN(Engine)
+
+class CFontManager :public CBase
+{
 public:
-    ~CFontManager()override=default;
-    HRESULT Add_Font(float fOriginFontSize,const std::wstring& strKey,const std::wstring& strFontPath);
-    const Engine::FONT_DESC* Get_Font(const std::wstring& strKey)const;
-    HRESULT Draw(const std::wstring& strKey,const std::wstring& strText,float x,float y,const float color[4])const;
-    void Set_DrawHandler(DrawHandler Handler){m_DrawHandler=std::move(Handler);}
-    HRESULT Ready_Default(); static CFontManager* Create(); void Free()override;
-private:std::unordered_map<std::wstring,Engine::FONT_DESC>m_Fonts;DrawHandler m_DrawHandler;
+	explicit CFontManager(ComPtr<Device>pDevice, ComPtr<DeviceContext> pContext);
+	virtual ~CFontManager() {}
+private:
+	HRESULT Initialize();
+public:
+
+	HRESULT Add_Font(float fOriginFontSize,const wstring& wstrAddKey,const wstring& wstrFontPath);
+	CFont*  Get_Font(const wstring& wstrFindKey);
+	HRESULT Draw(const wstring& wstringFindKey, const TCHAR* pText, const Float2& vPosition, const fVector4_1& vColor , FONT_RENDER_TYPE eType = FONT_RENDER_TYPE::DEFUALT);
+	HRESULT Draw(const wstring& wstringFindKey,const TCHAR* pText, const Float2& vPosition, const Float2& vSize, const fVector4_1& vColor, FONT_RENDER_TYPE eType = FONT_RENDER_TYPE::DEFUALT);
+
+private:
+	unordered_map<wstring,CFont*>			m_umapFont;
+
+
+	SpriteBatch*							m_pSpriteBatch;
+	ComPtr<Device>							m_pDevice;
+	ComPtr<DeviceContext>					m_pDeviceContext;
+public:
+	static CFontManager* Create(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	virtual void Free() override;
 };
+
+
+NS_END

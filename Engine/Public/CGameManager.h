@@ -1,193 +1,438 @@
 #pragma once
-
 #include "CBase.h"
-#include "Engine_Struct.h"
-#include <functional>
+#include "CCameraManager.h"
+#include "CEventBus.h"
+#include "CLightManager.h"
 
-class CCameraManager;
-class CCellManager;
-class CCollisionManager;
-class CFontManager;
-class CGameObjectManager;
-class CGraphicDevice;
-class CInputManager;
-class CLightManager;
-class CPlayerManager;
-class CPrototypeManager;
-class CRenderManager;
-class CRenderStateManager;
-class CRenderTargetManager;
-class CResourceManager;
-class CResource;
-class CSceneManager;
-class CScreenShotManager;
-class CSoundManager;
-class CTimeManger;
-class CUIManager;
-class CGameObject;
-class CScene;
-class CCollider;
-class CLight;
-class CCell;
-class CShader;
-class CCameraObjectBase;
-class CDebugOverlay;
 
-class ENGINE_DLL CGameManager final : public CBase
+NS_BEGIN(Engine)
+
+FD      CTimeManger;
+FD      CSceneManager;
+FD      CGraphicDevice;
+FD      CPrototypeManager;
+FD      CGameObjectManager;
+FD      CUIManager;
+FD      CPlayerManager;
+FD      CRenderManager;
+FD      CRenderTargetManager;
+FD      CRenderTarget;
+FD      CCameraManager;
+FD      CCameraObjectBase;
+FD      CInputManager;
+FD      CScreenShotManager;
+FD      CRenderStateManager;
+FD      CResourceManager;
+FD      CCellManager;
+FD      CFontManager;
+FD      CFont;
+FD      CCollisionManager;
+FD      CGameObject;
+FD      CLayer;
+FD      CShader;
+FD      CScreenShot;
+FD      CCanvas;
+FD      CScene;
+FD      CCell;
+FD      CResource;
+FD      CPipeLine;
+FD      CVIBuffer_Rect;
+
+using SceneFactory = std::function<CScene* (const CreateScene_Desc&)>;
+using RendereGroupSortFunc = std::function<bool(CONST CGameObject*, CONST CGameObject*)>;
+
+
+class ENGINE_DLL CGameManager :    public CBase
 {
     DECLARE_SINGLETON(CGameManager)
-
 private:
-    CGameManager();
-    ~CGameManager() override = default;
+    explicit CGameManager();
+    virtual ~CGameManager() = default;
+public:
+    HRESULT             Initialize_Engine(const Engine_Desc& tEngineDesc, ComPtr<Device>* ppDevice, ComPtr<DeviceContext>* ppDeviceContext);
+    void                Pre_Update_Engine(float DT);
+    void                Update_Engine(float DT);
+    void                Late_Update_Engine(float DT);
+    void                Add_RenderGroup();
+
+    
+    HRESULT             EndFrame();
+
+    HRESULT             Draw();
 
 public:
-    HRESULT Initialize_Engine(const Engine::Engine_Desc& tEngineDesc);
-    void    Pre_Update_Engine(float fTimeDelta);
-    void    Update_Engine(float fTimeDelta);
-    void    Late_Update_Engine(float fTimeDelta);
-    void    Draw(CBase* pRenderObject = nullptr);
-    void    Resize_Engine(uint32 iWinSizeX, uint32 iWinSizeY);
-    void    Release_Manager();
-    void    Release_Engine();
+
+    int32               Get_RandomInt(int32 iMin , int32 iMax);
+    float               Get_Randomfloat(float fMin, float fMax);
+    Float4              Get_RandomPosArea(const fVector4_1& vCenter , float minRange , float maxRange );
+    Float3              Get_RandomPosition(Float3 fRange,Float3 vCenter);
+    ShaderResourceView* Make_ShaderResourceViewColor(uint32 A, uint32 R, uint32 G, uint32 B , ComPtr<Device> pDevice , ComPtr<DeviceContext> pContext);
+public:
+
+    CONST uint32&       Get_DefaultWinSizeX() CONST{ return m_iDefaultWinSizeX; }
+    CONST uint32&       Get_DefaultWinSizeY() CONST{ return m_iDefaultWinSizeY; }
+
+
+public:
+    void                Set_IsDebug(bool isDebug) { m_isDebugMode = isDebug; }
+    bool                Get_IsDebug() { return m_isDebugMode ; }
+
+    HRESULT             Reaydy_Default(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+
+public:
+    void                Release_Manager();
+public:
+
+#pragma region GameManager
+    void                ChangeScene_Clear_CurSceneObject(uint32 iCurSceneID);
+#pragma endregion
 
 #pragma region TimerManager
-    HRESULT     TimerManager_Add_Timer(const std::wstring& strKey);
-    float       TimerManager_Get_TimeDelta(const std::wstring& strKey) const;
-    void        TimerManager_Compute_TimeDelta(const std::wstring& strKey);
-    uint32      TimerManger_Get_FPS(const std::wstring& strKey) const;
+    HRESULT	            TimerManager_Add_Timer(const wstring strKey); // Timer 추가
+    float	            TimerManager_Get_TimeDelta(const wstring strKey); // TImer DT 가져오기
+    void	            TimerManager_Compute_TimeDelta(const wstring strKey); // Timer 누적시키기
+    uint32              TimerManger_Get_FPS(const wstring strKey);
+
 #pragma endregion
 
-#pragma region InputManager
-    bool InputManager_GetButtonPress(KEY_TYPE eKey) const;
-    bool InputManager_GetButtonDown(KEY_TYPE eKey) const;
-    bool InputManager_GetButtonUp(KEY_TYPE eKey) const;
-    const Engine::TOUCH_STATE& InputManager_GetTouchState(uint32 iTouchIndex) const;
-    void InputManager_SetNativeTouchState(uint32 iTouchIndex,bool isPressed,float fX,float fY);
-#pragma endregion
+#pragma region GraphicDevice;
 
-#pragma region CollisionManager
-    HRESULT CollisionManager_Register_CollisionTable(uint32 iSrcGroupID, uint32 iDstGroupID);
-    HRESULT CollisionManager_Add_Collider(uint32 iGroupID, CCollider* pCollider);
-    void CollisionManager_Clear_Collision();
-#pragma endregion
+    void                        GraphicDevice_RenderBegin(const Color& ClearColor);
+    void                        GraphicDevice_RenderEnd();
 
-#pragma region UIManager
-    HRESULT UIManager_Add_Canvas(uint32 iIndex, CGameObject* pCanvas);
-    CGameObject* UIManager_Get_Canvas(uint32 iIndex) const;
-    void UIManager_Release_Canvas(uint32 iIndex);
-    void UIManager_Fade_In(float fTime); void UIManager_Fade_Out(float fTime);
-#pragma endregion
+    HRESULT                     GraphicDevice_Get_BackBuffer(ComPtr<Texture2D>* pTexture2D, uint32 iFlag = 0);
+    /* 창 / Surface 크기 변경 (엔진 렌더 해상도는 그대로 두고 화면 출력만 맞춘다) */
+    void                        GraphicDevice_Resize(uint32 iWinSizeX, uint32 iWinSizeY);
 
-#pragma region CameraPlayerManager
-    HRESULT CameraManager_Add_Camera(const std::wstring& strKey, UPDATE_MODE eMode, CCameraObjectBase* pCamera);
-    HRESULT CameraManager_Remove_Camera(const std::wstring& strKey, UPDATE_MODE eMode);
-    CCameraObjectBase* CameraManager_Get_Camera(const std::wstring& strKey, UPDATE_MODE eMode) const;
-    CCameraObjectBase* CameraManager_Get_MainCamera() const;
-    HRESULT CameraManager_Switch_MainCamera(const std::wstring& strKey, UPDATE_MODE eMode);
-    HRESULT PlayerManager_Add_Player(const std::wstring& strKey, CGameObject* pPlayer);
-    CGameObject* PlayerManager_Get_Player(const std::wstring& strKey) const;
-#pragma endregion
+    HWND                        GraphicDevice_Get_HWND();
+    HANDLE                      GraphicDevice_Get_Handle();
 
-#pragma region LightCellManager
-    HRESULT LightManager_Add_Light(const Engine::LIGHT_DESC& Desc);
-    CLight* LightManager_Get_Light(LIGHT_TYPE eType, uint32 iIndex) const;
-    HRESULT CellManager_Add_Cells(const std::wstring& strKey, const std::vector<CCell*>& Cells);
-    const std::vector<CCell*>& CellManager_Get_Cells(const std::wstring& strKey) const;
-#pragma endregion
+    ComPtr<Device>              GraphicDevice_Get_Device();
+    ComPtr<DeviceContext>       GraphicDevice_Get_DeviceContext();
 
-#pragma region RenderStateTargetManager
-    HRESULT RenderStateManager_Add_RenderState(uint32 iIndex, const Engine::RENDER_STATE_DESC& Desc);
-    const Engine::RENDER_STATE_DESC* RenderStateManager_Get_RenderState(uint32 iIndex) const;
-    HRESULT RenderTargetManager_Add_RenderTarget(const std::wstring& strKey,uint32 iWidth,uint32 iHeight,const float* pClearColor);
-    HRESULT RenderTargetManager_Add_MRT(const std::wstring& strMRTKey,const std::wstring& strTargetKey);
-    HRESULT RenderTargetManager_Begin_MRT(const std::wstring& strKey); HRESULT RenderTargetManager_End_MRT();
-    HRESULT RenderTargetManager_Bind_ShaderResource(const std::wstring& strTargetKey,const std::string& strVariable,CShader* pShader);
-#pragma endregion
+    ComPtr<RTV>                 GraphicDevice_Get_RTV();
+    ComPtr<DepthStencilView>    GraphicDevice_Get_DSV();
 
-#pragma region FontSoundScreenShotManager
-    HRESULT FontMananger_Add_Font(float fSize,const std::wstring& strKey,const std::wstring& strPath);
-    HRESULT FontMananger_Draw(const std::wstring& strKey,const std::wstring& strText,float x,float y,const float color[4]) const;
-    HRESULT SoundManager_Add_Sound(const std::wstring& strKey,const std::wstring& strPath);
-    HRESULT SoundManager_Play(const std::wstring& strKey,uint32 iChannel,float fVolume,bool isLoop=false);
-    void SoundManager_Stop(uint32 iChannel);
-    void ScreenShotManager_Request_ScreenShot(bool isOverlay,const std::wstring& strFilePath=L"");
-#pragma endregion
+    HRESULT                     GraphicDevice_Set_GPU_OriginViewPort();
 
-#pragma region GameObjectManager
-    CGameObject* GameObjectManager_Add_GameObject(uint32 iPrototypeLevelID,
-                                                   const std::wstring& strPrototypeTag,
-                                                   uint32 iCloneLevelID,
-                                                   const std::wstring& strLayerTag,
-                                                   void* pArg = nullptr);
-    CGameObject* GameObjectManager_Find_GameObject(uint32 iLevelID,
-                                                   const std::wstring& strLayerTag,
-                                                   const std::wstring& strGameObjectName) const;
-    void GameObjectManager_Pre_Update(uint32 iLevelID, float fTimeDelta);
-    void GameObjectManager_Update(uint32 iLevelID, float fTimeDelta);
-    void GameObjectManager_Late_Update(uint32 iLevelID, float fTimeDelta);
-    HRESULT GameObjectManager_Add_RenderGroup(uint32 iLevelID);
-    void GameObjectManager_Add_ColliderGroup(uint32 iLevelID);
-    HRESULT GameObjectManager_Clear(uint32 iLevelID);
-#pragma endregion
+    const VIEWPORT_DESC&       GraphicDevice_Get_OriginViewPort();
+    void                        CGraphicDevice_Set_ScissorRectsOrigin();
 
-#pragma region RenderManager
-    HRESULT RenderManager_Add_RenderGroup(RENDER_GROUP eRenderGroup, CGameObject* pGameObject);
+
+
+#pragma endregion 
+
+#pragma region ResourceManager
+    CResource*                  ResourceManager_Get_Resource(const wstring& wstrKey, RESOURCE_TYPE eResourceType, bool isCopy, void* pArg = nullptr);
+    HRESULT                     ResourceManager_Add_Resource(const wstring& wstrKey, CResource* pResource);
 #pragma endregion
 
 #pragma region SceneManager
-    HRESULT SceneManager_Register_Factory(uint32 iSceneID, const std::function<CScene*(const Engine::CREATE_SCENE_DESC&)>& Factory);
-    void SceneManager_Request_Change(const Engine::CREATE_SCENE_DESC& Desc);
-    uint32 SceneManager_Get_CurrentSceneID() const;
+    
+    HRESULT		                SceneManager_Register_SceneFactory(uint32 iSceneID, const SceneFactory& SceneCreateFuntion);
+    void		                SceneManager_RequestChangeScene(const CreateScene_Desc& tDesc);
+    HRESULT			            SceneManager_ExecutePendingSceneChanges();
+    vector<CScene*>&            SceneManager_GetStackScene();
+
+    uint32				        SceneManager_GetCurrentSceneID();
+    CScene*                     SceneManager_GetCurScene();
+
+
 #pragma endregion
 
-#pragma region ResourceManager
-    HRESULT ResourceManager_Load_Texture(const std::wstring& strKey,
-                                         const std::wstring& strPath,
-                                         uint32 iTextureCount = 1);
-    HRESULT ResourceManager_Add_Resource(const std::wstring& strKey, CResource* pResource);
-    CResource* ResourceManager_Get_Resource(const std::wstring& strKey,
-                                            RESOURCE_TYPE eResourceType,
-                                            bool isCopy = false,
-                                            void* pArg = nullptr) const;
-    HRESULT ResourceManager_Remove_Resource(const std::wstring& strKey, RESOURCE_TYPE eResourceType);
+#pragma region Cell Manager
+
+    const vector<CCell*>&     CellManager_Get_Cells(const wstring& wstrFindKey);
+    HRESULT                   CellManager_Add_Cells(const wstring& wstrCellPath, const wstring& wstrAddKey);
+
+    bool				      CellManager_Get_IsCellRender() const;
+    void				      CellManager_Set_IsCellRender(bool isRender);
+
+#pragma endregion
+
+
+#pragma region Collision Manager
+
+    HRESULT	            CollisionManager_Register_CollisionTable(uint32 iSrcGroupID, uint32 iDstGroupID);
+    HRESULT             CollisionManager_Add_Collider(uint32 iAddGroupID, CCollider* pCollider);
+    void	            CollisionManager_RayCollision(uint32 iColliderGruopID, const RAY_INFO& tRayInfo, RayHit* pRayHit);
+    void	            CollisionManager_Clear_Collision();
+
 #pragma endregion
 
 #pragma region PrototypeManager
-    HRESULT PrototypeManager_Add_Prototype(PROTOTYPE_TYPE ePrototypeType,
-                                           uint32 iLevelID,
-                                           const std::wstring& strPrototypeTag,
-                                           CBase* pPrototype);
-    CBase* PrototypeManager_Clone_Prototype(PROTOTYPE_TYPE ePrototypeType,
-                                            uint32 iLevelID,
-                                            const std::wstring& strPrototypeTag,
-                                            void* pArg = nullptr) const;
-    void PrototypeManager_Clear_Prototype(uint32 iLevelID);
+    CBase*           PrototypeManager_Clone_Prototype(PROTOTYPE_TYPE eCloneProtoType, uint32 iCloneProtoSceneID, const wstring& strCloneProtoKey, void* pArg);
+    CBase*           PrototypeManager_Clone_Prototype_InGlobal(PROTOTYPE_TYPE eCloneProtoType, const wstring& strCloneProtoKey, void* pArg);
+
+    void            Clear_Prototype_CurSceneID(uint32 iCurSceneID);
+    HRESULT         PrototypeManager_Add_Prototype(PROTOTYPE_TYPE eAddProtoType, uint32 iAddProtoSceneID, const wstring& strAddProtoKey, CBase* pPrototype);
+    HRESULT         PrototypeManager_Add_Prototype_InGlobal(PROTOTYPE_TYPE eProtoType, const wstring& strAddProtoKey, CBase* pPrototype);
+
+
+
+
+
+
+#ifdef _DEBUG
+    /* PrototypeManager  */
+    map<const wstring, CBase*>&         PrototypeManager_GetGameObjectPrototypeList_ByScene(uint32 iSceneID);
+    map<const wstring, CBase*>&         PrototypeManager_GetComponentPrototypeList_ByScene(uint32 iSceneID);
+    const map<const wstring, CBase*>&   PrototypeManager_GetGlobalGameObjectPrototypeList();
+    const map<const wstring, CBase*>&   PrototypeManager_GetGlobalComponentPrototypeList();
+
+#endif // _DEBUG
+
+#pragma endregion
+
+
+#pragma region UI Manager
+    HRESULT		UIManager_Add_Canvas(uint32 iIndex, CCanvas* pCanvas);
+    CCanvas*    UIManager_Get_Canvas(uint32 iIndex);
+    void        UIManager_Release_Canvas(uint32 iIndex);
+    void		UIManager_Fade_Out(float fTime);
+    void		UIManager_Fade_In(float fTime);
+
+#pragma endregion
+
+#pragma region GameObjectManager
+    CGameObject*        GameObjectManager_Add_GameObject(uint32 iFindProtoSceneID, const wstring& strCloneProtokey, uint32 iAddCloneSceneID, const wstring& strAddLayerKey, void* pArg);
+    CGameObject*        GameObjectManager_Add_GameObject_ByGlobalProto(const wstring& strFindProtoKey, const wstring& strAddLayerKey, void* pArg = nullptr, uint32 iAddCloneSceneID = GLOBAL);
+    void                GameObjectManager_Pre_Update(uint32 iSceneID, float DT);
+    void                GameObjectManager_Update(uint32 iSceneID, float DT);
+    void                GameObjectManager_Late_Update(uint32 iSceneID, float DT);
+    HRESULT             GameObjectManager_Add_RenderGroup(uint32 iSceneID);
+    HRESULT             GameObjectManager_Clear_GameObjectByScneeID(uint32 iSceneID);
+
+    const CLayer*       GameObjectManager_Get_Layer(uint32 iSceneID, const wstring& wstrLayerName);
+
+
+    CGameObject*        GameObjectManager_Find_GameObject_InGlobal(const wstring& strFindLayerKey, const wstring& strGameObjectName);
+    CGameObject*        GameObjectManager_Find_GameObject_InGlobal(const wstring& strFindLayerKey, CGameObject* pFindGameObject);
+
+    CGameObject*        GameObjectManager_Find_GameObject(uint32 iFindSceneID, const wstring& strFindLayerKey, CGameObject* pFindGameObject);
+    CGameObject*        GameObjectManager_Find_GameObject(uint32 iFindSceneID, const wstring& strFindLayerKey, const wstring& strGameObjectName);
+
+    void                GameObjectManager_Add_ColliderGroup(uint32 iSceneID);
+
+
+#ifdef _DEBUG
+
+    const map<const wstring, CLayer*>&          GameObjectManager_GetCurSceneLayer(uint32 iCurSceneID);
+    const vector<map<const wstring, CLayer*>>&  GameObjectManager_Get_AllSceneLayer();
+    const map<const wstring, CLayer*>&          GameObjectManager_GetGlobalLayer();
+#endif
+
+
+#pragma endregion
+
+#pragma region RenderManager
+
+    HRESULT RenderManager_RenderGruop(const vector<CCameraObjectBase*>& vecRenderCam);
+    HRESULT RenderManager_RenderGruop(CCameraObjectBase* pRenderCam);
+    HRESULT RenderManager_Add_RenderGroup(RENDER_GROUP eRenderGruop, CGameObject* pGameObject);
+    HRESULT RenderManager_Clean_RenderGroup();
+
+    HRESULT RenderManager_RenderGruop_APlan(const vector<CCameraObjectBase*>& vecRenderCam);
+    void    RenderManager_Set_RenderMode(int32 iMode);
+    void    RenderManager_Set_BenchLabel(const string& strLabel);
+    int32   RenderManager_Get_RenderMode();
+    void    RenderManager_Set_PerCameraDeferred(bool isPerCamera);
+    bool    RenderManager_Get_PerCameraDeferred();
+    void    RenderManager_GpuTimer_Begin(uint32 iCamCount);
+    void    RenderManager_GpuTimer_End();
+
+#ifdef _DEBUG
+    HRESULT RenderManager_Add_DebugComponent(CComponent* pComponent);
+    HRESULT RenderManager_Render_DebugPass(const vector<CCameraObjectBase*>& vecRenderCam);
+#endif
+#pragma endregion
+
+#pragma region RenderTargetManager
+    HRESULT	RenderTargetManager_Add_RenderTarget(const wstring& wstrAddKey, uint32 iWidth, uint32 iHeight, const Color& vColor, TEXTURE_FORMAT eFormat);
+    HRESULT RenderTargetManager_Add_MRT(const wstring& wstrAddMRTKey, const wstring& wstrFindRenderTargetKey);
+
+    /* Begin End 함수 */
+    HRESULT	RenderTargetManager_Begin_MRT(const wstring& wstrFindMRT);
+    HRESULT	RenderTargetManager_Begin_MRT_NoClear(const wstring& wstrFindMRT);
+    HRESULT	RenderTargetManager_Clear_MRT_Rect(const wstring& wstrFindMRT, const RECT_DESC& tRect);
+    HRESULT RenderTargetManager_End_MRT();
+    HRESULT RenderTargetManager_Bind_ShaderResource(const wstring& wstrFindRenderTargetKey, const string& strBindTexName, CShader* pShader);
+
+    ShaderResourceView* RenderTargetManager_Get_ShaderResourceView(const wstring& wstrFindRenderTargetKey);
+
+
+
+#ifdef _DEBUG
+    HRESULT	RenderTargetManager_Ready_Debug(const wstring& wstrFindRenderTargetKey, float fX, float fY, float fSizeX, float fSizeY);
+    HRESULT	RenderTargetManager_Render_Debug(const wstring& wstrFindRenderTargtKey, CShader* pShader, CVIBuffer_Rect* pBuffer);
+#endif // _DEBUG
+
+
+#pragma endregion 
+
+#pragma region CameraManager
+public:
+    HRESULT                         CameraManager_MakeDefaultCamera(CONST CDefaultCameraObject::DefaultCameraObject_Dest* pDesc);
+    HRESULT							CameraManager_Add_Camera(const wstring& wstrKey, UPDATE_MODE eUpdateMode, CCameraObjectBase* pCamera);
+    HRESULT                         CameraManager_Remove_Camera(const wstring& wstrKey, UPDATE_MODE eUpdateMode);
+    CCameraObjectBase*              CameraManager_Get_Camera(CONST wstring& wstrKey, UPDATE_MODE eUpdateMode);
+    void							CameraManager_Set_CameraRenderActive(const wstring& wstrKey, UPDATE_MODE eUpdateMode, bool isRednerActive);
+    const array<unordered_map<wstring, CCameraObjectBase*>, Cast_Uint(UPDATE_MODE::END) >& CameraManager_Get_CameraList();
+
+    CCameraObjectBase*              CameraManager_Get_CurRenderingCamera();
+    HRESULT                         CameraManager_MakeDefaultUICamera(const CUICameraObject::UICameraObject_Desc* pUICameraDest);
+    HRESULT                         CameraManager_Render();
+
+
+#ifdef _DEBUG
+#endif
+
+#pragma endregion
+
+#pragma region Light Manager
+    
+    const LIGHT_GROUP_BUF*          LightManager_Get_LightGroupBuffer();
+    CLight*                         LightManager_Get_Light(LIGHT_TYPE eType, uint32 iIndex);
+    const LIGHT_BUF_DATA&           LightManager_Get_LightBufferData(LIGHT_TYPE eType, uint32 iIndex);
+    HRESULT							LightManager_Add_Light(const CLight::Light_Desc& tDesc);
+    HRESULT							LightManager_Render_Light(CShader* pSader, CVIBuffer_Rect* pVIBuffer, CCameraObjectBase* pRenderCam);
+    list<CLight*>					LightManager_Get_LightList(LIGHT_TYPE eType);
+    HRESULT							LightManager_Clear_Light();
+    HRESULT							LightManager_Add_Light(CLight* pLight);
+
+
+
+#pragma endregion
+
+#pragma region PipeLine
+
+    HRESULT                         PipeLine_Set_PipeLineMatrix(CONST std::wstring& wstrFindKey, D3DTS eTransformMatrix, const XMatrix_1& TransformMatrix);
+    HRESULT                         PipeLine_Set_PipeLineMatrix(CONST std::wstring& wstrFindKey, D3DTS eTransformMatrix, const Float4x4& TransformMatrix);
+
+    Float4x4 	                    PipeLine_Get_PipeLineMatrix(CONST std::wstring& wstrFindKey, D3DTS eTransformMatrix, bool isInverse) CONST;
+    const Float4x4*                 PipeLine_Get_PipeLineMatrixPtr(const std::wstring& wstrFindKey, D3DTS eTransformMatrix, bool isInverse) const;
+
+    Float4		                    PipeLine_Get_CameraPosition(CONST std::wstring& wstrFindKey) CONST;
+
+    HRESULT			                PipeLine_Link_EffectConstantBuffer(GLOBAL_CB_TYPE eCBType, CShader* pShader);
+
+    HRESULT			                PipeLine_Bind_PipeLine();
+
+    HRESULT                         PipeLine_Set_GPU_CameraBuffer(const wstring& wstrFindKey, const CAM_SHADER_INFO& tCamInfo);
+    HRESULT			                PipeLine_Set_GPU_LightGroupBuffer(const LIGHT_GROUP_BUF& tLightGroupBuf);
+
+
+
+    HRESULT                         PipeLine_Set_GPU_MouseBuffer(const MOUSE_BUF_DATA& tData);
+
+    CONST void                      PipeLine_Clear_PipeLine();
+
+#ifdef _DEBUG
+#endif
+
+
+#pragma endregion
+
+#pragma region ScreenShot Manager
+
+    HRESULT		    ScreenShotManager_Add_ScreenShot(const wstring& strKey, CScreenShot* pTexture);
+    CScreenShot*    ScreenShotManager_Get_ScreenShot(const wstring& strKey);
+    void            ScreenShotManager_Request_ScreenShot(bool isOverLay,  CScreenShot** ppScreenShot = NULLPTR);
+    HRESULT         ScreenShotManager_ScreenShot(bool isOverLay,  CScreenShot** ppScreenShot = NULLPTR);
+
+    CScreenShot*    ScreenShotMangaer_Get_OverLayScreenShot();
+
+#pragma endregion
+
+#pragma region RenderStateManager
+
+    HRESULT             RenderStateManager_Set_GPU_RenderState(uint32 iIndex, STATE_TYPE eType);
+    HRESULT			    RenderStateManager_Add_RenderState(uint32 iIndex,FD CRenderState* pAddRenderState);
+    FD CRenderState*    RenderStateManager_Get_RenderState(uint32 iIndex, STATE_TYPE eType);
+
+#pragma endregion
+
+
+
+#pragma region InputManager
+    bool InputManager_GetButtonPress(KEY_TYPE key);
+    bool InputManager_GetButtonDown(KEY_TYPE key);
+    bool InputManager_GetButtonUp(KEY_TYPE key);
+    long InputManager_Get_DIMouseMove(MOUSEMOVESTATE eMouseState);
+    long InputManager_Get_DIMouseState(MOUSEKEYSTATE eMouse);
+    CONST POINT& InputManager_GetPreFrameMousePos();
+    CONST POINT& InputManager_GetMousePos();
+    void         InputManager_Mouse_Fix();
+    void         InputManager_Mouse_Fix(uint32 iStartX, uint32 iStartY, uint32 iWinSizeX, uint32 iWinSizeY);
+    void         InputManager_Mouse_Set_Show(bool isShow);
+
+
+    
+    RAY_INFO     InputManager_Get_LayWorld(const wstring& wstrCamName, UPDATE_MODE eType, RAY_TYPE eRayType);
+
+
+    void InputManager_Update(float DT);
+
+    /* 모바일 : 터치 / 가상 키 입력 전달 (NativeActivity 입력 스레드에서 호출해도 된다) */
+    void InputManager_Set_NativeTouch(uint32 iSlot, bool isPressed, float fScreenX, float fScreenY);
+    void InputManager_Set_NativeKey(KEY_TYPE eKey, bool isPressed);
+#pragma endregion
+
+
+#pragma region PlayerManager
+
+    HRESULT         PlayerManager_Add_Player(const wstring& AddKey , CGameObject* pPlayer);
+    CGameObject*    PlayerManager_Get_Player(const wstring& FindKey);
+
+
+    CGameObject*    PlayerManager_Compute_CheckRange(const fVector4_1& vMonsterPos, float fMonsterRange, CGameObject* pCurTargetPlayer = nullptr);
+
+    void            PlayerManager_ClearPlayer();
+
+#pragma endregion
+
+#pragma region FontManager
+
+    HRESULT       FontMananger_Add_Font(float fOriginFontSize,const wstring& wstrFindKey, const wstring& wstrFontPath);
+    CFont*        FontMananger_Get_Font(const wstring& wstrFindKey);
+    HRESULT       FontMananger_Draw(const wstring& wstringFindKey, const TCHAR* pText, const Float2& vPosition, const fVector4_1& vColor, FONT_RENDER_TYPE eType = FONT_RENDER_TYPE::DEFUALT);
+    HRESULT       FontMananger_Draw(const wstring& wstringFindKey, const TCHAR* pText, const Float2& vPosition, const Float2& vSize, const fVector4_1& vColor, FONT_RENDER_TYPE eType = FONT_RENDER_TYPE::DEFUALT);
+
 #pragma endregion
 
 private:
-    HRESULT Initialize_Manager(const Engine::Engine_Desc& tEngineDesc);
+    CTimeManger*                m_pTimerManager;
+    CGraphicDevice*             m_pGraphicDevice;
+    CSceneManager*              m_pSceneManager;
+    CCollisionManager*          m_pCollisionManager;
+    CPrototypeManager*          m_pPrototypeManager;
+    CGameObjectManager*         m_pGameObjectManager;
+    CUIManager*                 m_pUIManager;
+    CRenderManager*             m_pRenderManger;
+    CRenderTargetManager*       m_pRenderTargetManager;
+    CCameraManager*             m_pCameraManager;
+    CScreenShotManager*         m_pScreenShotManager;
+    CPlayerManager*             m_pPlayerManager;
+    CRenderStateManager*        m_pRenderStateManager;
+    CPipeLine*                  m_pPipeLine;
+    CInputManager*              m_pInputManager;
+    CResourceManager*           m_pResourceManager;
+    CCellManager*               m_pCellManager;
+    CLightManager*              m_pLightManager;
+    CFontManager*               m_pFontManager;
 private:
-    CGraphicDevice*       m_pGraphicDevice = nullptr;
-    CTimeManger*          m_pTimerManager = nullptr;
-    CSceneManager*        m_pSceneManager = nullptr;
-    CGameObjectManager*   m_pGameObjectManager = nullptr;
-    CPrototypeManager*    m_pPrototypeManager = nullptr;
-    CInputManager*        m_pInputManager = nullptr;
-    CRenderManager*       m_pRenderManager = nullptr;
-    CRenderStateManager*  m_pRenderStateManager = nullptr;
-    CRenderTargetManager* m_pRenderTargetManager = nullptr;
-    CCameraManager*       m_pCameraManager = nullptr;
-    CScreenShotManager*   m_pScreenShotManager = nullptr;
-    CResourceManager*     m_pResourceManager = nullptr;
-    CLightManager*        m_pLightManager = nullptr;
-    CCellManager*         m_pCellManager = nullptr;
-    CPlayerManager*       m_pPlayerManager = nullptr;
-    CCollisionManager*    m_pCollisionManager = nullptr;
-    CUIManager*           m_pUIManager = nullptr;
-    CFontManager*         m_pFontManager = nullptr;
-    CSoundManager*        m_pSoundManager = nullptr;
-    CDebugOverlay*        m_pDebugOverlay = nullptr;
+    uint32                      m_iDefaultWinSizeX;
+    uint32                      m_iDefaultWinSizeY;	
+    uint32                      m_iTotalSceneNum;
+    uint32                      m_iTotalRenderGroupNum;
 private:
-    void Free() override;
+    bool                        m_isDebugMode;
+
+
+public:
+    virtual void    Free() override;
 };
+
+
+NS_END
+

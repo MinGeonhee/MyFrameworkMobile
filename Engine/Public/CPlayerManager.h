@@ -1,14 +1,32 @@
 #pragma once
 #include "CBase.h"
-class CGameObject;
-class ENGINE_DLL CPlayerManager final:public CBase
+
+namespace Engine
 {
-private:CPlayerManager()=default;
+	class CGameObject;
+}
+
+NS_BEGIN(Engine)
+
+class CPlayerManager final : public CBase
+{
+private:
+	explicit CPlayerManager();
+	virtual ~CPlayerManager() {}
 public:
- ~CPlayerManager()override=default;
- HRESULT Add_Player(const std::wstring& strKey,CGameObject* pPlayer);
- CGameObject* Get_Player(const std::wstring& strKey)const;
- void Remove_Player(const std::wstring& strKey);void Clear_Player();
- static CPlayerManager* Create();void Free()override;
-private:std::unordered_map<std::wstring,CGameObject*> m_Players;
+	HRESULT		 Add_Player(const wstring& wstrAddKey,CGameObject* pPlayer);
+	CGameObject* Get_Player(const wstring& wstrFindKey);
+
+	void		 Clear_Player();
+
+	CGameObject* Compute_CheckRange(const fVector4_1& vCheckPos, float fCheckRange, CGameObject* pCurTargetPlayer = nullptr);
+
+private:
+	unordered_map<wstring,CGameObject*>	m_umapPlayer;
+public:
+	static	CPlayerManager* Create();
+	virtual void Free()override;
 };
+
+
+NS_END

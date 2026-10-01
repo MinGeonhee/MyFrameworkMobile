@@ -46,12 +46,13 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <DisableSpecificWarnings>4251;4275;4244;4267;4305;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>PLATFORM_WIN32=1;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);..\Public;..\Private;..\..\EngineSDK\Inc;..\..\Library\DiligentEngine\DiligentCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PLATFORM_WIN32=1;_WINDOWS;IMGUI_API=__declspec(dllimport);_HAS_STD_BYTE=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\Public;..\Private;..\..\EngineSDK\Inc;..\..\Library\DirectXMath\Inc;..\..\Library\DiligentEngine\DiligentCore;..\..\Library\DiligentEngine\DiligentTools\ThirdParty\json\single_include;..\..\Library\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
@@ -62,25 +63,22 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Public\pch.h" />
-    <ClInclude Include="..\Public\Game_Entry.h" />
-    <ClInclude Include="..\Public\CTestScene.h" />
     <ClInclude Include="..\Public\CTestObject.h" />
-    <ClInclude Include="..\Public\CTerrain.h" />
-    <ClInclude Include="..\Public\CSkyBox.h" />
+    <ClInclude Include="..\Public\CTestScene.h" />
+    <ClInclude Include="..\Public\Game_Define.h" />
+    <ClInclude Include="..\Public\Game_Entry.h" />
+    <ClInclude Include="..\Public\pch.h" />
     <ClInclude Include="framework.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Private\CTestObject.cpp" />
+    <ClCompile Include="..\Private\CTestScene.cpp" />
+    <ClCompile Include="..\Private\Game_Entry.cpp" />
     <ClCompile Include="..\Private\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
     </ClCompile>
-    <ClCompile Include="..\Private\Game_Entry.cpp" />
-    <ClCompile Include="..\Private\CTestScene.cpp" />
-    <ClCompile Include="..\Private\CTestObject.cpp" />
-    <ClCompile Include="..\Private\CTerrain.cpp" />
-    <ClCompile Include="..\Private\CSkyBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Engine\Default\Engine.vcxproj">

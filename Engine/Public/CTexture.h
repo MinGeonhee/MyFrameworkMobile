@@ -1,57 +1,53 @@
 #pragma once
-
 #include "CResource.h"
-#include "Graphics/GraphicsEngine/interface/Texture.h"
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
+namespace Engine
+{
+	class CShader;
+}
 
-class CShader;
+NS_BEGIN(Engine)
 
-class ENGINE_DLL CTexture final : public CResource
+class ENGINE_DLL  CTexture : public CResource
 {
 private:
-    explicit CTexture(Diligent::IRenderDevice* pDevice, Diligent::IDeviceContext* pDeviceContext);
-    explicit CTexture(const CTexture& Prototype);
-    ~CTexture() override = default;
-
-    HRESULT Initialize(const std::wstring& strPath, uint32 iTextureCount);
-    HRESULT Initialize(Diligent::ITexture* pTexture);
-    HRESULT Initialize_RGBA8(const void* pPixels, uint32 iWidth, uint32 iHeight, bool isSRGB);
-    HRESULT Copy_Initialize(void* pArg) override;
-
+	explicit CTexture(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	explicit CTexture(const CTexture& Prototype);
+	virtual ~CTexture() {}
+private:
+	HRESULT	Initialize(const wstring& Path, uint32 iTextureCnt);
+	HRESULT	Initialize(Texture2D* pTexture2DCom);
+	virtual HRESULT		Copy_Initialize(void* pArg);
 public:
-    Diligent::ITextureView* GetShaderResourceView(uint32 iIndex = 0) const;
-    Diligent::ITexture* Get_Texture(uint32 iIndex = 0) const;
-    uint32 Get_TextureCount() const { return static_cast<uint32>(m_vecTexture.size()); }
+	ShaderResourceView*							GetShaderResourceView(uint32 iIndex= 0 ) { MAX_ENUM_CHECK_RETURN_NULLPTR(m_iTextureCnt, iIndex); return m_vecTexture[iIndex]; }
+	ShaderResourceView**						GetShaderResourceViewPP(uint32 iIndex= 0 ) { MAX_ENUM_CHECK_RETURN_NULLPTR(m_iTextureCnt, iIndex); return &m_vecTexture[iIndex]; }
+	const uint32&								Get_TextureCnt() const { return m_iTextureCnt; }
 
-    HRESULT Set_GPU_Texture(CShader* pShader, const std::string& strVariableName = "g_Texture");
-    HRESULT Set_GPU_Textures(CShader* pShader, uint32 iCountTex, uint32 iOffset = 0);
+	/* Defualt Texture */
+	HRESULT										Set_GPU_Texture(CShader* pShader);
+	HRESULT										Set_GPU_Textures(CShader* pShader, uint32 iCountTex , uint32 iOffset = 0);
 
-    static CTexture* Create(const std::wstring& strPath,
-                            uint32 iTextureCount,
-                            Diligent::IRenderDevice* pDevice,
-                            Diligent::IDeviceContext* pDeviceContext);
-    static CTexture* Create(Diligent::ITexture* pTexture,
-                            Diligent::IRenderDevice* pDevice,
-                            Diligent::IDeviceContext* pDeviceContext);
-    static CTexture* Create_RGBA8(const void* pPixels,
-                                  uint32 iWidth,
-                                  uint32 iHeight,
-                                  bool isSRGB,
-                                  Diligent::IRenderDevice* pDevice,
-                                  Diligent::IDeviceContext* pDeviceContext);
-
-    CResource* Copy_Resource(void* pArg = nullptr) override;
-    void Free() override;
+	/* Mix Textures */
+	HRESULT										Set_GPU_MixTextureArr(CShader* pShader,uint32 iCountTex, uint32 iOffset = 0);
+	HRESULT										Set_GPU_MaskTexture(CShader* pShader);
 
 private:
-    std::wstring m_strFileName;
-    std::vector<Diligent::RefCntAutoPtr<Diligent::ITexture>> m_vecTexture;
+	wstring										m_wstrFileName;
+private:
+	vector<ShaderResourceView*>					m_vecTexture;
+	uint32										m_iTextureCnt;
+public:
+	static CTexture* Create(const wstring& Path, uint32 iTextureCnt,ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	static CTexture* Create( Texture2D* pTexture2DCom ,ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+
+	CResource*				Copy_Resource(void* pArg);
+
+	virtual void			Free();
 };
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+/* 파일 → Diligent Texture (png / jpg / tga / bmp : stb_image , dds : 엔진 DDS 로더) */
+ENGINE_DLL HRESULT	Load_TextureFromFile(Device* pDevice, const wstring& wstrPath, Diligent::ITexture** ppTexture);
+/* RGBA8 메모리 → Diligent Texture */
+ENGINE_DLL HRESULT	Create_TextureRGBA8(Device* pDevice, uint32 iWidth, uint32 iHeight, const void* pPixels, const char* pName, Diligent::ITexture** ppTexture);
+
+NS_END

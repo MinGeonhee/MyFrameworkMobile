@@ -1,183 +1,203 @@
-#include "pch.h"
 #include "CPrototypeManager.h"
-
-#include "CComponent.h"
 #include "CGameObject.h"
-#include "CVIBuffer_Rect.h"
-#include "CVIBuffer_Terrain.h"
-#include "CVIBuffer_Cube.h"
-#include "CSpriteAnimator.h"
 #include "CTransform.h"
-#include "CDefaultCameraObject.h"
+#include "CNavigation.h"
+#include "CCollider.h"
+#include "CVIBuffer.h"
+#include "CUI_Image.h"
+#include "CUITransform.h"
+#include "CUI_Animation.h"
+#include "CVIBuffer_Rect.h"
 
-CPrototypeManager::CPrototypeManager(Device* pDevice, Context* pDeviceContext)
-    : m_pDevice{pDevice}
-    , m_pDeviceContext{pDeviceContext}
+
+
+CPrototypeManager::CPrototypeManager(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
+	: m_pDevice(pDevice) , m_pDeviceContext(pContext) ,  m_iTotalSceneNum(0)
 {
+	for (auto i = 0; i < Cast_Int(PROTOTYPE_TYPE::END); ++i)
+		vector<map<const wstring, CBase*>>().swap(m_mapPrototype[i]);
 }
 
-CPrototypeManager::~CPrototypeManager()
+HRESULT CPrototypeManager::Initialize(CONST PrototypeManager_Desc& tDesc)
 {
-    Free();
+
+	m_iTotalSceneNum = tDesc.iTotalSceneNum;
+
+	for (auto i = 0; i < Cast_Int(PROTOTYPE_TYPE::END); ++i)
+	{
+		vector<map<const wstring, CBase*>>().swap(m_mapPrototype[i]);
+		m_mapPrototype[i].resize(m_iTotalSceneNum);
+	}
+
+	return S_OK;
 }
 
-HRESULT CPrototypeManager::Initialize(const Engine::PrototypeManager_Desc& Desc)
+HRESULT CPrototypeManager::Ready_DefaultPrototype(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
 {
-    if (Desc.iTotalLevelCount == 0)
-        return E_INVALIDARG;
 
-    m_iTotalLevelCount = Desc.iTotalLevelCount;
-    for (auto& PrototypeMapByType : m_PrototypeMaps)
-        PrototypeMapByType.resize(m_iTotalLevelCount);
+	CComponent* pProtoComponent{ nullptr };
 
-    return S_OK;
+#pragma region Component
+
+	/* GameObject Compoent */
+	pProtoComponent = CTransform::Create(m_pDevice, m_pDeviceContext);
+	NULLPTR_RETURN_EFAIL(pProtoComponent);
+	Add_Prototype_InGlobal(PROTOTYPE_TYPE::COMPONENT, L"Proto_Component_Transform", pProtoComponent);
+
+	pProtoComponent = CCollider::Create(m_pDevice, m_pDeviceContext);
+	NULLPTR_RETURN_EFAIL(pProtoComponent);
+	Add_Prototype_InGlobal(PROTOTYPE_TYPE::COMPONENT, L"Proto_Component_Collider", pProtoComponent);
+
+	pProtoComponent = CNavigation::Create(m_pDevice, m_pDeviceContext);
+	NULLPTR_RETURN_EFAIL(pProtoComponent);
+	Add_Prototype_InGlobal(PROTOTYPE_TYPE::COMPONENT, L"Proto_Component_Navigation", pProtoComponent);
+
+	/* UIObject Compoent */
+	pProtoComponent = CUITransform::Create(m_pDevice, m_pDeviceContext);
+	NULLPTR_RETURN_EFAIL(pProtoComponent);
+	Add_Prototype_InGlobal(PROTOTYPE_TYPE::COMPONENT, L"Proto_UIComponent_UITransform", pProtoComponent);
+
+	pProtoComponent = CUI_Image::Create(m_pDevice, m_pDeviceContext);
+	NULLPTR_RETURN_EFAIL(pProtoComponent);
+	Add_Prototype_InGlobal(PROTOTYPE_TYPE::COMPONENT, L"Proto_UIComponent_UIImage", pProtoComponent);
+
+	pProtoComponent = CUI_Animation::Create(m_pDevice, m_pDeviceContext);
+	NULLPTR_RETURN_EFAIL(pProtoComponent);
+	Add_Prototype_InGlobal(PROTOTYPE_TYPE::COMPONENT, L"Proto_UIComponent_UIAnimation", pProtoComponent);
+
+
+#pragma endregion
+
+
+	return S_OK;
 }
 
-HRESULT CPrototypeManager::Ready_DefaultPrototype()
+
+
+HRESULT CPrototypeManager::Add_Prototype(PROTOTYPE_TYPE eAddProtoType, uint32 iAddProtoSceneID, const wstring& strAddProtoKey, CBase* pPrototype)
 {
-    CTransform* pTransformPrototype=CTransform::Create(m_pDevice,m_pDeviceContext);
-    if(!pTransformPrototype||FAILED(Add_Prototype(PROTOTYPE_TYPE::COMPONENT,Engine::GLOBAL_LEVEL,L"Proto_Component_Transform",pTransformPrototype))){if(pTransformPrototype)pTransformPrototype->Release();return E_FAIL;}
+	const auto& pBase = Find_Prototype(eAddProtoType, iAddProtoSceneID, strAddProtoKey);
+	/* ProtoType 이 찾아서 있다면 Return 없을 떄만 추가 */
+	if (pBase != nullptr) return E_FAIL;
+	/* 추가해주기 */
+	m_mapPrototype[static_cast<int>(eAddProtoType)][iAddProtoSceneID].emplace(strAddProtoKey,pPrototype);
 
-    CVIBuffer_Rect* pRectPrototype = CVIBuffer_Rect::Create(m_pDevice, m_pDeviceContext);
-    if (pRectPrototype == nullptr)
-        return E_FAIL;
-
-    if (FAILED(Add_Prototype(
-            PROTOTYPE_TYPE::COMPONENT,
-            Engine::GLOBAL_LEVEL,
-            L"Proto_Component_VIBuffer_Rect",
-            pRectPrototype)))
-    {
-        pRectPrototype->Release();
-        return E_FAIL;
-    }
-
-    CVIBuffer_Terrain* pTerrainPrototype=CVIBuffer_Terrain::Create(m_pDevice,m_pDeviceContext);
-    if(!pTerrainPrototype||FAILED(Add_Prototype(PROTOTYPE_TYPE::COMPONENT,Engine::GLOBAL_LEVEL,L"Proto_Component_VIBuffer_Terrain",pTerrainPrototype))){if(pTerrainPrototype)pTerrainPrototype->Release();return E_FAIL;}
-    CVIBuffer_Cube* pCubePrototype=CVIBuffer_Cube::Create(m_pDevice,m_pDeviceContext);
-    if(!pCubePrototype||FAILED(Add_Prototype(PROTOTYPE_TYPE::COMPONENT,Engine::GLOBAL_LEVEL,L"Proto_Component_VIBuffer_Cube",pCubePrototype))){if(pCubePrototype)pCubePrototype->Release();return E_FAIL;}
-
-    CSpriteAnimator* pSpriteAnimatorPrototype = CSpriteAnimator::Create(m_pDevice, m_pDeviceContext);
-    if (pSpriteAnimatorPrototype == nullptr || FAILED(Add_Prototype(
-            PROTOTYPE_TYPE::COMPONENT,
-            Engine::GLOBAL_LEVEL,
-            L"Proto_Component_SpriteAnimator",
-            pSpriteAnimatorPrototype)))
-    {
-        if (pSpriteAnimatorPrototype != nullptr) pSpriteAnimatorPrototype->Release();
-        return E_FAIL;
-    }
-
-    CDefaultCameraObject* pCameraPrototype=CDefaultCameraObject::Create(m_pDevice,m_pDeviceContext);
-    if(!pCameraPrototype||FAILED(Add_Prototype(PROTOTYPE_TYPE::GAMEOBJECT,Engine::GLOBAL_LEVEL,L"Proto_GameObject_DefaultCamera",pCameraPrototype))){if(pCameraPrototype)pCameraPrototype->Release();return E_FAIL;}
-
-    return S_OK;
+	return S_OK;
 }
 
-HRESULT CPrototypeManager::Add_Prototype(PROTOTYPE_TYPE ePrototypeType,
-                                         uint32 iLevelID,
-                                         const std::wstring& strPrototypeTag,
-                                         CBase* pPrototype)
+HRESULT CPrototypeManager::Add_Prototype_InGlobal(PROTOTYPE_TYPE eProtoType, const wstring& strAddProtoKey, CBase* pPrototype)
 {
-    if (ePrototypeType >= PROTOTYPE_TYPE::END || iLevelID >= m_iTotalLevelCount ||
-        strPrototypeTag.empty() || pPrototype == nullptr)
-        return E_INVALIDARG;
+	const auto& pBase = Find_Prototype_InGlobal(eProtoType,strAddProtoKey);
+	/* ProtoType 이 찾아서 있다면 Return 없을 떄만 추가 */
+	if (pBase != nullptr) return E_FAIL;
+	/* 추가해주기 */
+	m_mapPrototypeGlobal[Cast_Uint(eProtoType)].emplace(strAddProtoKey, pPrototype);
 
-    auto& PrototypeMap = m_PrototypeMaps[static_cast<size_t>(ePrototypeType)][iLevelID];
-    if (PrototypeMap.find(strPrototypeTag) != PrototypeMap.end())
-        return E_FAIL;
-
-    PrototypeMap.emplace(strPrototypeTag, pPrototype);
-    return S_OK;
+	return S_OK;
 }
 
-CBase* CPrototypeManager::Clone_Prototype(PROTOTYPE_TYPE ePrototypeType,
-                                          uint32 iLevelID,
-                                          const std::wstring& strPrototypeTag,
-                                          void* pArg) const
+CBase* CPrototypeManager::Clone_Prototype(PROTOTYPE_TYPE eCloneProtoType, uint32 iCloneProtoSceneID, const wstring& strCloneProtoKey, void* pArg)
 {
-    CBase* pPrototype = Find_Prototype(ePrototypeType, iLevelID, strPrototypeTag);
-    if (pPrototype == nullptr)
-        return nullptr;
+	const auto& pBase = Find_Prototype(eCloneProtoType, iCloneProtoSceneID, strCloneProtoKey);
+	NULLPTR_RETURN_NULLPTR(pBase);
 
-    switch (ePrototypeType)
-    {
-    case PROTOTYPE_TYPE::GAMEOBJECT:
-        return static_cast<CGameObject*>(pPrototype)->Clone(pArg);
+	if (eCloneProtoType == PROTOTYPE_TYPE::GAMEOBJECT) return static_cast<CGameObject*>(pBase)->Clone(pArg);
+	if(eCloneProtoType == PROTOTYPE_TYPE::COMPONENT) return static_cast<CComponent*>(pBase)->Clone(pArg);
 
-    case PROTOTYPE_TYPE::COMPONENT:
-        return static_cast<CComponent*>(pPrototype)->Clone(pArg);
-
-    default:
-        return nullptr;
-    }
+	return nullptr;
 }
 
-void CPrototypeManager::Clear_Prototype(uint32 iLevelID)
+CBase* CPrototypeManager::Clone_Prototype_InGlobal(PROTOTYPE_TYPE eCloneProtoType, const wstring& strCloneProtoKey, void* pArg)
 {
-    if (iLevelID == Engine::GLOBAL_LEVEL || iLevelID >= m_iTotalLevelCount)
-        return;
+	CBase* pBase = Find_Prototype_InGlobal(eCloneProtoType,strCloneProtoKey);
 
-    for (auto& PrototypeMapByType : m_PrototypeMaps)
-    {
-        auto& PrototypeMap = PrototypeMapByType[iLevelID];
-        for (auto& PrototypePair : PrototypeMap)
-            PrototypePair.second->Release();
-        PrototypeMap.clear();
-    }
+	NULLPTR_RETURN_NULLPTR(pBase);
+
+
+	if (eCloneProtoType == PROTOTYPE_TYPE::GAMEOBJECT) return static_cast<CGameObject*>(pBase)->Clone(pArg);
+	if (eCloneProtoType == PROTOTYPE_TYPE::COMPONENT) return static_cast<CComponent*>(pBase)->Clone(pArg);
+
+	return nullptr;
 }
 
-const std::map<std::wstring, CBase*>* CPrototypeManager::Get_PrototypeList(
-    PROTOTYPE_TYPE ePrototypeType,
-    uint32 iLevelID) const
+void CPrototypeManager::Clear_Prototype_CurSceneID(uint32 iCurSceneID)
 {
-    if (ePrototypeType >= PROTOTYPE_TYPE::END || iLevelID >= m_iTotalLevelCount)
-        return nullptr;
-
-    return &m_PrototypeMaps[static_cast<size_t>(ePrototypeType)][iLevelID];
+	for (auto i = 0; i < (uint32)PROTOTYPE_TYPE::END; ++i)
+	{
+		for (auto& ProtoVec : m_mapPrototype[i][iCurSceneID])
+			Safe_Release(ProtoVec.second);
+		m_mapPrototype[i][iCurSceneID].clear();
+	}
 }
 
-CBase* CPrototypeManager::Find_Prototype(PROTOTYPE_TYPE ePrototypeType,
-                                         uint32 iLevelID,
-                                         const std::wstring& strPrototypeTag) const
+map<const wstring, CBase*>& CPrototypeManager::GetGameObjectPrototypeList_ByScene(uint32 iSceneID)
 {
-    const auto* pPrototypeMap = Get_PrototypeList(ePrototypeType, iLevelID);
-    if (pPrototypeMap == nullptr)
-        return nullptr;
-
-    const auto Iter = pPrototypeMap->find(strPrototypeTag);
-    return Iter != pPrototypeMap->end() ? Iter->second : nullptr;
+	return m_mapPrototype[(uint32)PROTOTYPE_TYPE::GAMEOBJECT][iSceneID];
 }
 
-CPrototypeManager* CPrototypeManager::Create(const Engine::PrototypeManager_Desc& Desc,
-                                              Device* pDevice,
-                                              Context* pDeviceContext)
+map<const wstring, CBase*>& CPrototypeManager::GetComponentPrototypeList_ByScene(uint32 iSceneID)
 {
-    CPrototypeManager* pManager = new CPrototypeManager{pDevice, pDeviceContext};
-    if (FAILED(pManager->Initialize(Desc)))
-    {
-        delete pManager;
-        return nullptr;
-    }
+	return m_mapPrototype[(uint32)PROTOTYPE_TYPE::COMPONENT][iSceneID];
+}
 
-    return pManager;
+CBase* CPrototypeManager::Find_Prototype(PROTOTYPE_TYPE eProtoType, uint32 iProtoSceneID, const wstring& strProtoKey)
+{
+	MAX_ENUM_CHECK_RETURN_NULLPTR( (uint32)PROTOTYPE_TYPE::END , eProtoType);
+	MAX_ENUM_CHECK_RETURN_NULLPTR(m_iTotalSceneNum, iProtoSceneID);
+
+	const auto& MapBase = m_mapPrototype[Cast_Uint(eProtoType)][iProtoSceneID];
+
+	const auto& iter = MapBase.find(strProtoKey);
+
+	if (iter == MapBase.end()) return nullptr;
+
+
+	return iter->second;
+}
+
+CBase* CPrototypeManager::Find_Prototype_InGlobal(PROTOTYPE_TYPE eProtoType, const wstring& strProtoKey)
+{
+	MAX_ENUM_CHECK_RETURN_NULLPTR(PROTOTYPE_TYPE::END, eProtoType);
+
+	const auto& iter = m_mapPrototypeGlobal[Cast_Uint(eProtoType)].find(strProtoKey);
+	if (iter == m_mapPrototypeGlobal[Cast_Uint(eProtoType)].end()) return nullptr;
+
+	return iter->second;
+}
+
+
+CPrototypeManager* CPrototypeManager::Create(CONST PrototypeManager_Desc& tDesc,ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
+{
+	CPrototypeManager* pPrototypeManager = new CPrototypeManager(pDevice, pContext);
+
+
+	if (FAILED(pPrototypeManager->Initialize(tDesc)))
+	{
+		Safe_Release(pPrototypeManager);
+		MSG_BOX("Prototype Manager is failed to Create");
+		return nullptr;
+	}
+
+
+	return pPrototypeManager;
 }
 
 void CPrototypeManager::Free()
 {
-    for (auto& PrototypeMapByType : m_PrototypeMaps)
-    {
-        for (auto& PrototypeMap : PrototypeMapByType)
-        {
-            for (auto& PrototypePair : PrototypeMap)
-                PrototypePair.second->Release();
-            PrototypeMap.clear();
-        }
-        PrototypeMapByType.clear();
-    }
+	__super::Free();
 
-    m_iTotalLevelCount = 0;
-    m_pDevice = nullptr;
-    m_pDeviceContext = nullptr;
-    CBase::Free();
+	/* Prototype Manager Free() */
+	for (int i = 0; i < (uint32)PROTOTYPE_TYPE::END; ++i)
+	{
+		for (auto& BaseVec : m_mapPrototype[i])
+			for (auto& Pair : BaseVec)
+				Safe_Release(Pair.second);
+	}
+
+	for (auto i = 0; i < Cast_Int(PROTOTYPE_TYPE::END); ++i)
+		vector<map<const wstring, CBase*>>().swap(m_mapPrototype[i]);
+
+	for (int i = 0; i < (uint32)PROTOTYPE_TYPE::END; ++i)
+		for (auto& Proto_Global : m_mapPrototypeGlobal[i])
+			Safe_Release(Proto_Global.second);
 }

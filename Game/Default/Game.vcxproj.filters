@@ -1,6 +1,43 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup><Filter Include="Public"><UniqueIdentifier>{02D6577B-6F0F-46C7-9D2D-9C44DE0D3415}</UniqueIdentifier></Filter><Filter Include="Private"><UniqueIdentifier>{594DE534-EE7C-42FE-8ED8-F07D74AF58B2}</UniqueIdentifier></Filter><Filter Include="Default"><UniqueIdentifier>{F2330987-E84A-44CF-9F21-24CD9486F08C}</UniqueIdentifier></Filter></ItemGroup>
-  <ItemGroup><ClInclude Include="..\Public\pch.h"><Filter>Public</Filter></ClInclude><ClInclude Include="..\Public\Game_Entry.h"><Filter>Public</Filter></ClInclude><ClInclude Include="..\Public\CTestScene.h"><Filter>Public</Filter></ClInclude><ClInclude Include="..\Public\CTestObject.h"><Filter>Public</Filter></ClInclude><ClInclude Include="..\Public\CTerrain.h"><Filter>Public</Filter></ClInclude><ClInclude Include="..\Public\CSkyBox.h"><Filter>Public</Filter></ClInclude><ClInclude Include="framework.h"><Filter>Default</Filter></ClInclude></ItemGroup>
-  <ItemGroup><ClCompile Include="..\Private\pch.cpp"><Filter>Private</Filter></ClCompile><ClCompile Include="..\Private\Game_Entry.cpp"><Filter>Private</Filter></ClCompile><ClCompile Include="..\Private\CTestScene.cpp"><Filter>Private</Filter></ClCompile><ClCompile Include="..\Private\CTestObject.cpp"><Filter>Private</Filter></ClCompile><ClCompile Include="..\Private\CTerrain.cpp"><Filter>Private</Filter></ClCompile><ClCompile Include="..\Private\CSkyBox.cpp"><Filter>Private</Filter></ClCompile></ItemGroup>
+  <ItemGroup>
+    <Filter Include="Public">
+      <UniqueIdentifier>{1b4b55a2-0f0e-4a5e-9a51-6b0f5d1c0a01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Private">
+      <UniqueIdentifier>{1b4b55a2-0f0e-4a5e-9a51-6b0f5d1c0a02}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Public\CTestObject.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\CTestScene.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Game_Define.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\Game_Entry.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Public\pch.h">
+      <Filter>Public</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Private\CTestObject.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\CTestScene.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\Game_Entry.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Private\pch.cpp">
+      <Filter>Private</Filter>
+    </ClCompile>
+  </ItemGroup>
 </Project>

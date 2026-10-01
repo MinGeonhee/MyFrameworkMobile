@@ -1,23 +1,55 @@
 #pragma once
 #include "CBase.h"
-class CGameObject;
-class ENGINE_DLL CUIManager final : public CBase
+
+namespace Engine
 {
-private: CUIManager() = default;
-public:
-    ~CUIManager() override = default;
-    HRESULT Ready_DefaultUI();
-    HRESULT Add_Canvas(uint32 iIndex, CGameObject* pCanvas);
-    CGameObject* Get_Canvas(uint32 iIndex) const;
-    void Release_Canvas(uint32 iIndex);
-    void Fade_In(float fTime); void Fade_Out(float fTime);
-    float Get_FadeAlpha() const { return m_fFadeAlpha; }
-    void Pre_Update(float fTimeDelta); void Update(float fTimeDelta); void Late_Update(float fTimeDelta);
-    HRESULT Render();
-    static CUIManager* Create();
-    void Free() override;
+	class CCanvas;
+	class CBlendState;
+	class CDepthStencilState;
+	class CScreenFadeUI;
+	class CGameManager;
+}
+
+NS_BEGIN(Engine)
+
+class CUIManager : public CBase
+{
 private:
-    std::map<uint32,CGameObject*> m_Canvases;
-    UI_FADE_STATE m_eFadeState=UI_FADE_STATE::NONE;
-    float m_fFadeAlpha=0.f, m_fFadeDuration=0.f, m_fFadeElapsed=0.f;
+	explicit CUIManager(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	virtual ~CUIManager() {}
+public:
+	void					Pre_Update(float DT);
+	void					Update(float DT);
+	void					Late_Update(float DT);
+	HRESULT					Render();
+public:
+	HRESULT					Ready_DefaultUI();
+private:
+	HRESULT					Initialize();
+	HRESULT					Ready_DefaultCanvas();
+	HRESULT					Ready_RenderState();
+public:
+	void					Fade_Out(float fTime);
+	void					Fade_In(float fTime);
+public:
+	HRESULT					Add_Canvas(uint32 iIndex,CCanvas* pCanvas);
+	CCanvas*				Get_Canvas(uint32 iIndex);
+	void					Release_Canvas(uint32 iClearIndex);
+private:
+	/* Defualt Canvas */
+	CScreenFadeUI*			m_pScreenFadeUI;
+	CCanvas*				m_pDefaultCanvas;
+	map<uint32,CCanvas*>	m_mapCanvas;
+private:
+
+	CBlendState*			m_pBlendState;		
+	CDepthStencilState*		m_pDSV;
+	CGameManager*			m_pGameManager;
+	ComPtr<Device>			m_pDevice;
+	ComPtr<DeviceContext>	m_pDeviceContext;
+public:
+	static CUIManager* Create(ComPtr<Device> pDevice , ComPtr<DeviceContext> pContext);
+	virtual void Free()override;
 };
+
+NS_END

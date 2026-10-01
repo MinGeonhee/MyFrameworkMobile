@@ -84,3 +84,7 @@ Desktop.ini
 *.swp
 *~
 
+
+# Third-party binaries that must ship with the repo (FMOD for Windows)
+!Library/Fmod/
+!Library/Fmod/**

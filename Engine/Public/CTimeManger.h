@@ -1,33 +1,33 @@
 #pragma once
-
 #include "CBase.h"
 
-#include <map>
-#include <string>
+NS_BEGIN(Engine)	
 
 class CTimer;
 
-class CTimeManger final : public CBase
+class CTimeManger : public CBase
 {
 private:
-    CTimeManger() = default;
-
-public:
-    ~CTimeManger() override;
-
-    HRESULT Add_Timer(const std::wstring& strKey);
-    float Get_TimeDelta(const std::wstring& strKey) const;
-    uint32 Get_FPS(const std::wstring& strKey) const;
-    void Compute_TimeDelta(const std::wstring& strKey);
+	explicit CTimeManger();
+	virtual ~CTimeManger() =  default;
 
 private:
-    HRESULT Initialize();
-    CTimer* Find_Timer(const std::wstring& strKey) const;
-
-private:
-    std::map<std::wstring, CTimer*> m_mapTimer;
-
+	HRESULT	Initialize();
 public:
-    static CTimeManger* Create();
-    void Free() override;
+	//타이머 추가
+	HRESULT	Add_Timer(const wstring strKey);
+	//원하는 Key값의 DT값 가져오기
+	float	Get_TimeDelta(const wstring strKey);
+	uint32  Get_FPS(const wstring strKey);
+	void	Compute_TimeDelta(const wstring strKey);
+private:
+	CTimer* Find_Timer(const wstring strKey);
+private:
+	map<const wstring, CTimer*>	m_mapTimer;
+public:
+	static	CTimeManger* Create();
+	virtual	void		 Free() override;
 };
+
+NS_END
+

@@ -1,66 +1,74 @@
-#include "pch.h"
 #include "CBone.h"
+#include "CModel.h"
 
-namespace
+CBone::CBone()
+    : m_tInfo{}
 {
-void Identity(float* pOut)
-{
-    std::fill(pOut, pOut + 16, 0.f);
-    pOut[0] = pOut[5] = pOut[10] = pOut[15] = 1.f;
 }
 
-void Multiply(const float* a, const float* b, float* pOut)
+CBone::CBone(const CBone& Proto)
+    : m_tInfo(Proto.m_tInfo)
 {
-    float Result[16]{};
-    for (uint32 r = 0; r < 4; ++r)
-        for (uint32 c = 0; c < 4; ++c)
-            for (uint32 k = 0; k < 4; ++k)
-                Result[r * 4 + c] += a[r * 4 + k] * b[k * 4 + c];
-    std::copy(std::begin(Result), std::end(Result), pOut);
-}
+
 }
 
-CBone::CBone(const CBone& Prototype)
-    : CBase{Prototype}, m_tInfo{Prototype.m_tInfo}
+CBone::~CBone()
 {
-    std::copy(std::begin(Prototype.m_matCombined), std::end(Prototype.m_matCombined), m_matCombined);
 }
 
-HRESULT CBone::Initialize(const Engine::BONE_INFO& tBoneInfo)
+HRESULT CBone::Initialize(const BONE_INFO& tBoneInfo)
 {
-    if (tBoneInfo.strName.empty())
-        return E_INVALIDARG;
     m_tInfo = tBoneInfo;
-    std::copy(std::begin(m_tInfo.matTransform), std::end(m_tInfo.matTransform), m_matCombined);
+
     return S_OK;
 }
 
-void CBone::Set_TransformMatrix(const float* pMatrix)
+void CBone::Update_CombinedTransformationMatrix(const vector<CBone*>& vecBone, const XMatrix_1& PreTransformMatrix)
 {
-    if (pMatrix != nullptr)
-        std::copy(pMatrix, pMatrix + 16, m_tInfo.matTransform);
-}
+    if (vecBone.empty())
+        return;
 
-void CBone::Update_CombinedTransformationMatrix(const std::vector<CBone*>& vecBone, const float* pPreTransform)
-{
-    if (m_tInfo.iParentIndex >= 0 && static_cast<size_t>(m_tInfo.iParentIndex) < vecBone.size())
-        Multiply(m_tInfo.matTransform, vecBone[m_tInfo.iParentIndex]->m_matCombined, m_matCombined);
-    else if (pPreTransform != nullptr)
-        Multiply(m_tInfo.matTransform, pPreTransform, m_matCombined);
-    else
-        std::copy(std::begin(m_tInfo.matTransform), std::end(m_tInfo.matTransform), m_matCombined);
-}
-
-CBone* CBone::Create(const Engine::BONE_INFO& tBoneInfo)
-{
-    CBone* pInstance = new CBone{};
-    if (FAILED(pInstance->Initialize(tBoneInfo)))
+    /* 이러면 이게 RootNode라는뜻이다 */ // -1 이면 부모
+    if (m_tInfo.iParentIndex == -1)
     {
-        pInstance->Release();
+        /* 내 로컬 매트릭스에 변환 행렬을 곱해준다 */
+        XMStoreFloat4x4(&m_tInfo.matCombinedTransformation, PreTransformMatrix * XMLoadFloat4x4(&m_tInfo.matTransform));
+    }
+    else
+    {
+        /* 내가가진 부모의 뼈의 정보에 접근해서 이믹 곱해졌을 Combined된 트랜스폼을 곱해준다. */
+        XMStoreFloat4x4(&m_tInfo.matCombinedTransformation, XMLoadFloat4x4(&m_tInfo.matTransform) * XMLoadFloat4x4(&vecBone[m_tInfo.iParentIndex]->m_tInfo.matCombinedTransformation));
+    }
+}
+
+void CBone::Apply_BoneCombineTrasnform(const XMatrix_1& CombineMatrix)
+{
+    return XMStoreFloat4x4(&m_tInfo.matCombinedTransformation, XMLoadFloat4x4(&m_tInfo.matCombinedTransformation) * CombineMatrix);
+}
+
+CBone* CBone::Create(const BONE_INFO& tBoneInfo )
+{
+    CBone* pBone = new CBone();
+
+    if ( FAILED(pBone->Initialize(tBoneInfo)))
+    {
+        Safe_Release(pBone);
+        MSG_BOX("Bone is failed to Create");
+
         return nullptr;
     }
-    return pInstance;
+    return pBone;
 }
 
-CBone* CBone::Clone() { return new CBone{*this}; }
-void CBone::Free() { CBase::Free(); }
+CBone* CBone::Clone()
+{
+    return new CBone(*this);
+}
+
+void CBone::Free()
+{
+    __super::Free();
+
+    /* CBone::Free() */
+
+}

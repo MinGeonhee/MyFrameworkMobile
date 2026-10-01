@@ -1,143 +1,264 @@
-#include "pch.h"
 #include "CGameObjectManager.h"
 #include "CGameManager.h"
 #include "CGameObject.h"
 #include "CLayer.h"
+#include "CRenderManager.h"
 
-CGameObjectManager::CGameObjectManager(Device* pDevice, Context* pDeviceContext)
-    : m_pDevice{pDevice}, m_pDeviceContext{pDeviceContext}
-{
-}
 
-HRESULT CGameObjectManager::Initialize(uint32 iTotalLevelCount)
+CGameObjectManager::CGameObjectManager(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
+	: m_pDevice(pDevice) , m_pDeviceContext(pContext) , m_iTotalSceneNum(0) , m_pGameManager(CGameManager::GetInstance())
 {
-    if (iTotalLevelCount == 0) return E_INVALIDARG;
-    m_iTotalLevelCount = iTotalLevelCount;
-    m_LevelLayers.resize(iTotalLevelCount);
-    return S_OK;
+	Safe_AddRef(m_pGameManager);
 }
 
-CLayer* CGameObjectManager::Find_Layer(uint32 iLevelID, const std::wstring& strLayerTag) const
+HRESULT CGameObjectManager::Initialize(CONST GameObjectManager_Desc& tDesc)
 {
-    if (iLevelID >= m_LevelLayers.size()) return nullptr;
-    const auto Iter = m_LevelLayers[iLevelID].find(strLayerTag);
-    return Iter != m_LevelLayers[iLevelID].end() ? Iter->second : nullptr;
+	vector<map<const wstring, CLayer*>>().swap(m_mapLayer);
+
+	m_iTotalSceneNum = tDesc.iTotalSceneNum;
+	
+	/* Layer 개수가 미리 할당된다 */
+	m_mapLayer.resize(m_iTotalSceneNum);
+
+	return S_OK;
 }
 
-CGameObject* CGameObjectManager::Find_GameObject(uint32 iLevelID,
-                                                 const std::wstring& strLayerTag,
-                                                 const std::wstring& strGameObjectName) const
+CLayer* CGameObjectManager::Find_Layer(uint32 iFindSceneID, const wstring& strFindLayerKey)
 {
-    CLayer* pLayer = Find_Layer(iLevelID, strLayerTag);
-    return pLayer != nullptr ? pLayer->Find_GameObject(strGameObjectName) : nullptr;
+	MAX_ENUM_CHECK_RETURN_NULLPTR(m_iTotalSceneNum, iFindSceneID);
+
+	auto iter = m_mapLayer[iFindSceneID].find(strFindLayerKey);
+
+	if (iter == m_mapLayer[iFindSceneID].end())
+		return nullptr;
+
+	return iter->second;
 }
 
-CGameObject* CGameObjectManager::Find_GameObject(uint32 iLevelID,
-                                                 const std::wstring& strLayerTag,
-                                                 CGameObject* pGameObject) const
+CLayer* CGameObjectManager::Find_Layer_InGlobal(const wstring& strFindLayerKey)
 {
-    CLayer* pLayer = Find_Layer(iLevelID, strLayerTag);
-    return pLayer != nullptr ? pLayer->Find_GameObject(pGameObject) : nullptr;
+	const auto& iter = m_mapGlobalLayers.find(strFindLayerKey);
+	if (iter == m_mapGlobalLayers.end()) return nullptr;
+
+	return iter->second;
 }
 
-CGameObject* CGameObjectManager::Add_GameObject(uint32 iPrototypeLevelID,
-                                                const std::wstring& strPrototypeTag,
-                                                uint32 iCloneLevelID,
-                                                const std::wstring& strLayerTag,
-                                                void* pArg)
+CGameObject* CGameObjectManager::Find_GameObject_InGlobal(const wstring& strFindLayerKey, const wstring& strGameObjectName)
 {
-    CGameObject* pObject = static_cast<CGameObject*>(CGameManager::GetInstance()->PrototypeManager_Clone_Prototype(
-        PROTOTYPE_TYPE::GAMEOBJECT, iPrototypeLevelID, strPrototypeTag, pArg));
-    if (pObject == nullptr) return nullptr;
-    if (FAILED(Add_GameObject_ToLayer(iCloneLevelID, strLayerTag, pObject)))
-    {
-        pObject->Release();
-        return nullptr;
-    }
-    return pObject;
+	CLayer* pFindLayer = Find_Layer_InGlobal(strFindLayerKey);
+	NULLPTR_RETURN_NULLPTR(pFindLayer);
+
+	return pFindLayer->Find_GameObject(strGameObjectName);
 }
 
-HRESULT CGameObjectManager::Add_GameObject_ToLayer(uint32 iLevelID,
-                                                   const std::wstring& strLayerTag,
-                                                   CGameObject* pGameObject)
+CGameObject* CGameObjectManager::Find_GameObject_InGlobal(const wstring& strFindLayerKey, CGameObject* pFindGameObject)
 {
-    if (iLevelID >= m_LevelLayers.size() || strLayerTag.empty() || pGameObject == nullptr)
-        return E_INVALIDARG;
-    CLayer* pLayer = Find_Layer(iLevelID, strLayerTag);
-    if (pLayer == nullptr)
-    {
-        pLayer = CLayer::Create();
-        if (pLayer == nullptr) return E_FAIL;
-        m_LevelLayers[iLevelID].emplace(strLayerTag, pLayer);
-    }
-    return pLayer->Add_GameObject(pGameObject);
+	NULLPTR_RETURN_NULLPTR(pFindGameObject);
+
+	CLayer* pLayer{ nullptr };
+	pLayer = Find_Layer_InGlobal(strFindLayerKey);
+	
+	return pLayer->Find_GameObject(pFindGameObject);
 }
 
-void CGameObjectManager::Pre_Update(uint32 iLevelID, float fTimeDelta)
+CGameObject* CGameObjectManager::Find_GameObject(uint32 iFindSceneID, const wstring& strFindLayerKey, CGameObject* pFindGameObject)
 {
-    if (iLevelID >= m_LevelLayers.size()) return;
-    for (auto& Pair : m_LevelLayers[iLevelID]) Pair.second->Pre_Update(fTimeDelta);
+	NULLPTR_RETURN_NULLPTR(pFindGameObject);
+
+	CLayer* pFindLayer = Find_Layer(iFindSceneID, strFindLayerKey);
+	NULLPTR_RETURN_NULLPTR(pFindLayer);
+
+	return pFindLayer->Find_GameObject(pFindGameObject);
 }
-void CGameObjectManager::Update(uint32 iLevelID, float fTimeDelta)
+
+CGameObject* CGameObjectManager::Find_GameObject(uint32 iFindSceneID, const wstring& strFindLayerKey, const wstring& strGameObjectName)
 {
-    if (iLevelID >= m_LevelLayers.size()) return;
-    for (auto& Pair : m_LevelLayers[iLevelID]) Pair.second->Update(fTimeDelta);
+	CLayer* pFindLayer = Find_Layer(iFindSceneID,strFindLayerKey);
+	NULLPTR_RETURN_NULLPTR(pFindLayer);
+
+	return pFindLayer->Find_GameObject(strGameObjectName);
 }
-void CGameObjectManager::Late_Update(uint32 iLevelID, float fTimeDelta)
+
+CGameObject* CGameObjectManager::Add_GameObject(uint32 iFindProtoSceneID, const wstring& strCloneProtokey, uint32 iAddCloneSceneID, const wstring& strAddLayerKey, void* pArg)
 {
-    if (iLevelID >= m_LevelLayers.size()) return;
-    for (auto& Pair : m_LevelLayers[iLevelID]) Pair.second->Late_Update(fTimeDelta);
+	CGameObject* pGameObject = static_cast<CGameObject*>(m_pGameManager->PrototypeManager_Clone_Prototype(PROTOTYPE_TYPE::GAMEOBJECT,iFindProtoSceneID, strCloneProtokey, pArg));
+
+	CLayer* pLayer = Find_Layer(iFindProtoSceneID, strAddLayerKey);
+
+	if (pLayer == nullptr)
+	{
+		pLayer = CLayer::Create();
+		NULLPTR_RETURN_NULLPTR(pLayer);
+		m_mapLayer[iAddCloneSceneID].emplace(strAddLayerKey,pLayer);
+	}
+
+	pLayer->Add_GameObject(pGameObject);
+
+	return pGameObject;
 }
-HRESULT CGameObjectManager::Add_RenderGroup(uint32 iLevelID)
+
+CGameObject* CGameObjectManager::Add_GameObject_ByGlobalProto(const wstring& strFindProtoKey, const wstring& strAddLayerKey, void* pArg, uint32 iAddCloneSceneID)
 {
-    if (iLevelID >= m_LevelLayers.size()) return E_INVALIDARG;
-    for (auto& Pair : m_LevelLayers[iLevelID]) if (FAILED(Pair.second->Add_RenderGroup())) return E_FAIL;
-    return S_OK;
+	CGameObject* pGameObject = static_cast<CGameObject*>(m_pGameManager->PrototypeManager_Clone_Prototype_InGlobal(PROTOTYPE_TYPE::GAMEOBJECT, strFindProtoKey, pArg));
+
+	CLayer* pLayer{ nullptr };
+
+	if (iAddCloneSceneID == GLOBAL)		{ pLayer = Find_Layer_InGlobal(strAddLayerKey); }
+	else												{ pLayer = Find_Layer(iAddCloneSceneID, strAddLayerKey); }
+
+	if (pLayer == nullptr)
+	{
+		pLayer = CLayer::Create();
+		NULLPTR_RETURN_NULLPTR(pLayer);
+
+		if (iAddCloneSceneID == GLOBAL) { m_mapGlobalLayers.emplace(strAddLayerKey,pLayer); }
+		else										 { m_mapLayer[iAddCloneSceneID].emplace(strAddLayerKey, pLayer); }
+	}
+
+	pLayer->Add_GameObject(pGameObject);
+
+	return pGameObject;
 }
-void CGameObjectManager::Add_ColliderGroup(uint32 iLevelID)
+
+void CGameObjectManager::Pre_Update(uint32 iSceneID, float DT)
 {
-    if (iLevelID >= m_LevelLayers.size()) return;
-    for (auto& Pair : m_LevelLayers[iLevelID]) Pair.second->Add_ColliderGroup();
+	MAX_ENUM_CHECK_RETURN_NULL(m_iTotalSceneNum, iSceneID);
+	
+	for (const auto& Pair : m_mapGlobalLayers)
+		Pair.second->Pre_Update(DT);
+
+	for (const auto& Pair : m_mapLayer[iSceneID])
+		Pair.second->Pre_Update(DT);
 }
+
+void CGameObjectManager::Update(uint32 iSceneID, float DT)
+{
+	MAX_ENUM_CHECK_RETURN_NULL(m_iTotalSceneNum, iSceneID);
+
+	for (const auto& Pair : m_mapGlobalLayers)
+		Pair.second->Update(DT);
+
+
+	for (const auto& Pair : m_mapLayer[iSceneID])
+		Pair.second->Update(DT);
+}
+
+void CGameObjectManager::Late_Update(uint32 iSceneID, float DT)
+{
+	MAX_ENUM_CHECK_RETURN_NULL(m_iTotalSceneNum, iSceneID);
+
+	for (const auto& Pair : m_mapGlobalLayers)
+		Pair.second->Late_Update(DT);
+
+	for (const auto& Pair : m_mapLayer[iSceneID])
+		Pair.second->Late_Update(DT);
+}
+
+HRESULT CGameObjectManager::Add_RenderGroup(uint32 iSceneID)
+{
+	for (auto& Pair : m_mapGlobalLayers)
+		if (FAILED(Pair.second->Add_RenderGroup()))
+			return E_FAIL;
+
+	for (auto& Pair : m_mapLayer[iSceneID])
+		if (FAILED(Pair.second->Add_RenderGroup()))
+			return E_FAIL;
+
+	return S_OK;
+}
+
 void CGameObjectManager::Clean_DeadObject()
 {
-    for (auto& Level : m_LevelLayers) for (auto& Pair : Level) Pair.second->Clean_DeadObject();
+	for (auto& Pair : m_mapGlobalLayers)
+		Pair.second->Clean_DeadObject();
+
+	for (auto& MapLayers : m_mapLayer)
+		for (auto& MapLayer : MapLayers)
+			MapLayer.second->Clean_DeadObject();		
 }
 
-HRESULT CGameObjectManager::Clear_GameObjectByLevelID(uint32 iLevelID)
+void CGameObjectManager::Add_ColliderGroup(uint32 iSceneID)
 {
-    // Index 0은 Global이므로 일반 Scene 전환에서 지우지 않는다.
-    if (iLevelID == Engine::GLOBAL_LEVEL || iLevelID >= m_LevelLayers.size()) return E_INVALIDARG;
-    for (auto& Pair : m_LevelLayers[iLevelID]) Pair.second->Release();
-    m_LevelLayers[iLevelID].clear();
-    return S_OK;
+	MAX_ENUM_CHECK_RETURN_NULL(m_iTotalSceneNum, iSceneID);
+
+	for (const auto& Pair : m_mapGlobalLayers)
+		if (Pair.second)
+			Pair.second->Add_ColliderGroup();
+
+	for (const auto& Pair : m_mapLayer[iSceneID])
+		if (Pair.second)
+			Pair.second->Add_ColliderGroup();
+
 }
 
-const std::map<std::wstring, CLayer*>* CGameObjectManager::Get_LevelLayers(uint32 iLevelID) const
+
+const CLayer* CGameObjectManager::Get_Layer(uint32 iSceneID, const wstring& wstrLayerName)
 {
-    return iLevelID < m_LevelLayers.size() ? &m_LevelLayers[iLevelID] : nullptr;
-}
-CLayer* CGameObjectManager::Get_Layer(uint32 iLevelID, const std::wstring& strLayerTag) const
-{
-    return Find_Layer(iLevelID, strLayerTag);
+	if (iSceneID >= m_iTotalSceneNum) return nullptr;
+
+
+	auto iter = m_mapLayer[iSceneID].find(wstrLayerName);
+
+	if (iter == m_mapLayer[iSceneID].end()) return nullptr;
+
+	return iter->second;
 }
 
-CGameObjectManager* CGameObjectManager::Create(uint32 iTotalLevelCount, Device* pDevice, Context* pDeviceContext)
+HRESULT CGameObjectManager::Clear_GameObjectByScneeID(uint32 iSceneID)
 {
-    CGameObjectManager* pInstance = new CGameObjectManager{pDevice, pDeviceContext};
-    if (FAILED(pInstance->Initialize(iTotalLevelCount))) { pInstance->Release(); return nullptr; }
-    return pInstance;
+	MAX_ENUM_CHECK_RETURN_EFAIL(m_iTotalSceneNum, iSceneID);
+
+	for (auto& Pair : m_mapLayer[iSceneID])
+		Safe_Release(Pair.second);
+
+	m_mapLayer[iSceneID].clear();
+
+	map<const wstring, CLayer*>().swap(m_mapLayer[iSceneID]);
+
+	return S_OK;
 }
 
-void CGameObjectManager::Free()
+
+CGameObjectManager* CGameObjectManager::Create( CONST GameObjectManager_Desc& tDesc, ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
 {
-    for (auto& Level : m_LevelLayers)
-    {
-        for (auto& Pair : Level) Pair.second->Release();
-        Level.clear();
-    }
-    m_LevelLayers.clear();
-    m_pDevice = nullptr;
-    m_pDeviceContext = nullptr;
-    CBase::Free();
+	
+	CGameObjectManager* pGameObjectManager = new CGameObjectManager(pDevice, pContext);
+
+
+	if (FAILED(pGameObjectManager->Initialize(tDesc)))
+	{
+		Safe_Release(pGameObjectManager);
+		MSG_BOX("Prototype Manager is failed to Create");
+		return nullptr;
+	}
+
+	return pGameObjectManager;
 }
+
+void	CGameObjectManager::Free()
+{
+	__super::Free();
+
+	/* My Free() */
+	for (auto& MapLayer : m_mapLayer)
+	{
+		for (auto& Pair : MapLayer)
+			Safe_Release(Pair.second);
+		MapLayer.clear();
+		map<const wstring, CLayer*>().swap(MapLayer);
+	}
+
+	for (auto& MapGlobalLayer : m_mapGlobalLayers)
+	{
+		Safe_Release(MapGlobalLayer.second);
+	}
+
+	m_mapGlobalLayers.clear();
+
+
+
+	Safe_Release(m_pGameManager);
+}
+
+
+

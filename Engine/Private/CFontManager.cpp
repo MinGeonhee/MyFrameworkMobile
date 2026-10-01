@@ -1,13 +1,83 @@
-#include "pch.h"
 #include "CFontManager.h"
-CFontManager* CFontManager::Create(){return new CFontManager{};}
-HRESULT CFontManager::Add_Font(float size,const std::wstring& key,const std::wstring& path){if(key.empty()||path.empty()||size<=0.f)return E_INVALIDARG;Engine::FONT_DESC d{path,size};return m_Fonts.emplace(key,std::move(d)).second?S_OK:E_FAIL;}
-const Engine::FONT_DESC* CFontManager::Get_Font(const std::wstring& key)const{auto i=m_Fonts.find(key);return i==m_Fonts.end()?nullptr:&i->second;}
-HRESULT CFontManager::Draw(const std::wstring& key,const std::wstring& text,float x,float y,const float color[4])const
+#include "CFont.h"
+
+CFontManager::CFontManager(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
+    : m_pDevice(pDevice), m_pDeviceContext(pContext) , m_pSpriteBatch(nullptr)
 {
-    const auto* font=Get_Font(key);if(!font)return E_INVALIDARG;
-    // DirectXTK SpriteFont는 모바일/Vulkan에서 그대로 쓸 수 없어 실제 출력기는 콜백 백엔드로 분리한다.
-    return m_DrawHandler?m_DrawHandler(*font,text,x,y,color):E_NOTIMPL;
+
 }
-HRESULT CFontManager::Ready_Default(){return S_OK;}
-void CFontManager::Free(){m_DrawHandler={};m_Fonts.clear();CBase::Free();}
+
+
+HRESULT	CFontManager::Initialize()
+{
+    m_pSpriteBatch = new SpriteBatch(m_pDeviceContext.Get());
+
+    return S_OK;
+}
+
+HRESULT CFontManager::Add_Font(float fOriginFontSize,const wstring& wstrAddKey, const wstring& wstrFontPath)
+{
+    CFont* pFind = Get_Font(wstrAddKey);
+    if (pFind != nullptr) return E_FAIL;
+
+    pFind = CFont::Create(fOriginFontSize,wstrFontPath,m_pDevice,m_pDeviceContext);
+
+    m_umapFont.emplace(wstrAddKey, pFind);
+
+    return S_OK;
+}
+
+CFont* CFontManager::Get_Font(const wstring& wstrFindKey)
+{
+    auto iter = m_umapFont.find(wstrFindKey);
+    if (iter == m_umapFont.end()) return nullptr;
+    return iter->second;
+}
+
+HRESULT CFontManager::Draw(const wstring& wstringFindKey, const TCHAR* pText, const Float2& vPosition, const Float2& vSize, const fVector4_1& vColor, FONT_RENDER_TYPE eType)
+{
+
+    CFont* pFindFont = Get_Font(wstringFindKey);
+    NULLPTR_RETURN_EFAIL(pFindFont);
+    m_pSpriteBatch->Begin();
+    pFindFont->Draw(m_pSpriteBatch, pText, vPosition, vSize ,vColor,eType);
+    m_pSpriteBatch->End();
+
+    return S_OK;
+}
+
+HRESULT CFontManager::Draw(const wstring& wstringFindKey, const TCHAR* pText, const Float2& vPosition, const fVector4_1& vColor, FONT_RENDER_TYPE eType)
+{
+    CFont* pFindFont = Get_Font(wstringFindKey);
+    NULLPTR_RETURN_EFAIL(pFindFont);
+    m_pSpriteBatch->Begin();
+    pFindFont->Draw(m_pSpriteBatch,pText,vPosition,vColor, eType);
+    m_pSpriteBatch->End();
+
+    return S_OK;
+}
+
+
+CFontManager* CFontManager::Create(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
+{
+    CFontManager* pFontManager = new CFontManager(pDevice,pContext);
+
+    if (FAILED(pFontManager->Initialize()))
+    {
+        Safe_Release(pFontManager);
+        MSG_BOX("Font Manger is failed to Create");
+        return nullptr;
+    }
+
+    return pFontManager;
+}
+
+void CFontManager::Free()
+{
+    __super::Free();
+
+    for (auto& Font : m_umapFont)
+        Safe_Release(Font.second);
+
+    Safe_Delete(m_pSpriteBatch);
+}

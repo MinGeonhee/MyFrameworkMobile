@@ -1,20 +1,54 @@
 #pragma once
 #include "CBase.h"
-class CRenderTarget;class CShader;
-class ENGINE_DLL CRenderTargetManager final:public CBase
+
+namespace Engine
 {
-private:CRenderTargetManager(Diligent::IRenderDevice* d,Diligent::IDeviceContext* c,Diligent::ISwapChain* s):m_pDevice(d),m_pContext(c),m_pSwapChain(s){}
-public:
- ~CRenderTargetManager()override=default;
- HRESULT Ready_Default();
- HRESULT Add_RenderTarget(const std::wstring& key,uint32 w,uint32 h,const float* color,Diligent::TEXTURE_FORMAT format=Diligent::TEX_FORMAT_RGBA8_UNORM);
- HRESULT Add_MRT(const std::wstring& mrtKey,const std::wstring& targetKey);
- CRenderTarget* Find_RenderTarget(const std::wstring& key)const;
- HRESULT Bind_ShaderResource(const std::wstring& targetKey,const std::string& variable,CShader* shader);
- HRESULT Begin_MRT(const std::wstring& key);HRESULT End_MRT();
- static CRenderTargetManager* Create(Diligent::IRenderDevice* d,Diligent::IDeviceContext* c,Diligent::ISwapChain* s);void Free()override;
+	class CRenderTarget;
+}
+
+NS_BEGIN(Engine)
+
+class CRenderTargetManager final : public CBase
+{
 private:
- std::unordered_map<std::wstring,CRenderTarget*> m_Targets;
- std::unordered_map<std::wstring,std::vector<CRenderTarget*>> m_MRTs;
- Diligent::IRenderDevice* m_pDevice=nullptr;Diligent::IDeviceContext* m_pContext=nullptr;Diligent::ISwapChain* m_pSwapChain=nullptr;
+	explicit CRenderTargetManager(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	virtual ~CRenderTargetManager() {}
+public:
+	HRESULT	Add_RenderTarget(const wstring& wstrAddKey , uint32 iWidth, uint32 iHeight, const Color& vColor, TEXTURE_FORMAT eFormat);
+	HRESULT Add_MRT( const wstring& wstrAddMRTKey , const wstring& wstrFindRenderTargetKey );
+
+	ShaderResourceView*	Get_ShaderResourceView(const wstring& wstrFindRenderTargetKey);
+
+	/* Begin End 함수 */
+	HRESULT	Begin_MRT(const wstring& wstrFindMRT);
+	/* A-plan : bind without clearing, then clear only a camera rect */
+	HRESULT	Begin_MRT_NoClear(const wstring& wstrFindMRT);
+	HRESULT	Clear_MRT_Rect(const wstring& wstrFindMRT, const RECT_DESC& tRect);
+	HRESULT Bind_ShaderResource(const wstring& wstrFindRenderTargetKey , const string& strBindTexName ,CShader* pShader);
+	HRESULT End_MRT();
+#ifdef _DEBUG
+	HRESULT	Ready_Debug( const wstring& wstrFindRenderTargetKey ,float fX , float fY , float fSizeX ,float fSizeY);
+	HRESULT	Render_Debug( const wstring& wstrFindRenderTargtKey ,CShader* pShader , CVIBuffer_Rect* pBuffer);
+#endif
+
+public:
+	CRenderTarget*			Find_RenderTarget(const wstring& wstrFindKey);
+	list<CRenderTarget*>*	Find_MRT(const wstring& wstrFindKey);
+private:
+	HRESULT Initialize();
+private:
+	unordered_map<wstring,CRenderTarget*>		m_umapRenderTarget;
+	unordered_map<wstring,list<CRenderTarget*>> m_umapMRT;
+private:
+	/* Bind 하기 이전의 RTV , DSV 를 기록해둔다 */
+	RenderTargetView*						m_pBackBuffer;
+	DepthStencilView*						m_pPreDSV;
+private:
+	ComPtr<Device>			m_pDevice;
+	ComPtr<DeviceContext>	m_pDeviceContext;
+public:
+	static CRenderTargetManager* Create(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	virtual void Free() override;
 };
+
+NS_END

@@ -1,49 +1,52 @@
 #pragma once
-
 #include "CGameObject.h"
 
-class CPartObject;
+namespace Engine
+{
+	class CPartObject;
+}
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
+NS_BEGIN(Engine)
 
 class ENGINE_DLL CContainerObject abstract : public CGameObject
 {
-public:
-    struct CONTAINEROBJECT_DESC : public Engine::GAMEOBJECT_DESC {};
-
 protected:
-    explicit CContainerObject(Device* pDevice, Context* pDeviceContext);
-    explicit CContainerObject(const CContainerObject& Prototype);
-    ~CContainerObject() override = default;
+	typedef struct ContainerObject_Desc : public GAMEOBJECT_DESC
+	{
+	}CONTAINEROBJECT_DESC;
+protected:
+	explicit CContainerObject(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	explicit CContainerObject(const CContainerObject& Proto);
+	virtual ~CContainerObject() {}
+protected:
+	HRESULT				Proto_Initialize();
+	HRESULT				Clone_Initialize(void* pArg)override;
+	HRESULT				Ready_Component(void* pArg)override;
+	virtual HRESULT		Ready_PartObject();
 
 public:
-    HRESULT Proto_Initialize() override;
-    HRESULT Clone_Initialize(void* pArg) override;
-    HRESULT Ready_Component(void* pArg) override;
-    virtual HRESULT Ready_PartObject();
-    void Pre_Update(float fTimeDelta) override;
-    void Update(float fTimeDelta) override;
-    void Late_Update(float fTimeDelta) override;
-    HRESULT Add_RenderGroup() override;
-    HRESULT Render() override;
-    void Set_Dead() override;
+	virtual void		Pre_Update(float DT)						override;
+	virtual void		Update(float DT)							override;
+	virtual void		Late_Update(float DT)						override;
+	virtual HRESULT		Add_RenderGroup()							override;
+	virtual HRESULT		Render(FD CCameraObjectBase* pRenderCam)	override;
+	virtual void		Set_Dead()									override;
 
-    HRESULT Add_PartObject(uint32 iFindLevelID,
-                           const std::wstring& strPrototypeTag,
-                           const std::wstring& strPartTag,
-                           void* pArg,
-                           CPartObject** ppPartObject = nullptr);
-    CPartObject* Find_PartObject(const std::wstring& strPartTag) const;
-    const std::map<std::wstring, CPartObject*>& Get_PartObjectList() const { return m_mapPartObject; }
-    void Free() override;
+#ifdef _DEBUG
 
+	virtual void		ImGuiUpdate()override;
+
+#endif 
+
+public:
+	HRESULT				Add_PartObject( uint32 iFindSceneID, const wstring& wstrFindProtoKey,const wstring& wstrAddKey , void* pArg  ,CPartObject** ppPartObject );
+	CPartObject*		Find_PartObject(const wstring& wstrFindKey);
 protected:
-    std::map<std::wstring, CPartObject*> m_mapPartObject;
+	map< const wstring, CPartObject*>			m_mapPartObject;
+
+public:
+	virtual void Free();
 };
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+NS_END
+

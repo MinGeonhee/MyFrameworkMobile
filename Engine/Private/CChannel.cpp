@@ -1,73 +1,121 @@
-#include "pch.h"
 #include "CChannel.h"
 #include "CBone.h"
-#include <cmath>
 
-namespace
-{
-float Lerp(float a, float b, float t) { return a + (b - a) * t; }
 
-void MakeSRT(const Engine::KEY_FRAME& Frame, float* m)
-{
-    float x = Frame.vRotation[0], y = Frame.vRotation[1], z = Frame.vRotation[2], w = Frame.vRotation[3];
-    const float Length = std::sqrt(x*x + y*y + z*z + w*w);
-    if (Length > 0.f) { x /= Length; y /= Length; z /= Length; w /= Length; }
-    m[0]=(1-2*y*y-2*z*z)*Frame.vScale[0]; m[1]=(2*x*y+2*w*z)*Frame.vScale[0]; m[2]=(2*x*z-2*w*y)*Frame.vScale[0]; m[3]=0;
-    m[4]=(2*x*y-2*w*z)*Frame.vScale[1]; m[5]=(1-2*x*x-2*z*z)*Frame.vScale[1]; m[6]=(2*y*z+2*w*x)*Frame.vScale[1]; m[7]=0;
-    m[8]=(2*x*z+2*w*y)*Frame.vScale[2]; m[9]=(2*y*z-2*w*x)*Frame.vScale[2]; m[10]=(1-2*x*x-2*y*y)*Frame.vScale[2]; m[11]=0;
-    m[12]=Frame.vTranslation[0]; m[13]=Frame.vTranslation[1]; m[14]=Frame.vTranslation[2]; m[15]=1;
-}
-}
 
-CChannel::CChannel(const CChannel& Prototype)
-    : CBase{Prototype}, m_iConnectedBoneIndex{Prototype.m_iConnectedBoneIndex}, m_vecKeyFrame{Prototype.m_vecKeyFrame}
+CChannel::CChannel()
+    : m_vecKeyFrame{}, m_iConnectedBoneIndex{}
 {
 }
 
-HRESULT CChannel::Initialize(const Engine::CHANNEL_INFO& tInfo)
+CChannel::CChannel(const CChannel& Proto)
+    : m_vecKeyFrame(Proto.m_vecKeyFrame), m_iConnectedBoneIndex(Proto.m_iConnectedBoneIndex)
 {
-    if (tInfo.vecKeyFrame.empty())
-        return E_INVALIDARG;
+}
+
+CChannel::~CChannel()
+{
+}
+
+HRESULT CChannel::Initialize(const CHANNEL_INFO& tInfo)
+{
+    /* CChanel 정보 채우기 */
     m_iConnectedBoneIndex = tInfo.iConnectedBoneIndex;
-    m_vecKeyFrame = tInfo.vecKeyFrame;
+
+    if (FAILED(Ready_KeyFrame(tInfo.vecKeyFrame)))
+        return E_FAIL;
+
     return S_OK;
 }
 
-Engine::KEY_FRAME CChannel::Make_CurTrackPositionFrame(float fTrackPosition, uint32& iCurrentFrameIndex) const
+HRESULT CChannel::Ready_KeyFrame(const vector<Key_Frame>& vecKeyFrame)
 {
-    if (m_vecKeyFrame.size() == 1)
-        return m_vecKeyFrame.front();
-    while (iCurrentFrameIndex + 1 < m_vecKeyFrame.size() &&
-           fTrackPosition >= m_vecKeyFrame[iCurrentFrameIndex + 1].fTime)
-        ++iCurrentFrameIndex;
-    const uint32 iNext = std::min<uint32>(iCurrentFrameIndex + 1, static_cast<uint32>(m_vecKeyFrame.size() - 1));
-    const auto& A = m_vecKeyFrame[iCurrentFrameIndex];
-    const auto& B = m_vecKeyFrame[iNext];
-    const float Range = B.fTime - A.fTime;
-    const float t = Range > 0.f ? std::clamp((fTrackPosition - A.fTime) / Range, 0.f, 1.f) : 0.f;
-    Engine::KEY_FRAME Result{};
-    Result.fTime = fTrackPosition;
-    for (uint32 i=0;i<3;++i) { Result.vScale[i]=Lerp(A.vScale[i],B.vScale[i],t); Result.vTranslation[i]=Lerp(A.vTranslation[i],B.vTranslation[i],t); }
-    for (uint32 i=0;i<4;++i) Result.vRotation[i]=Lerp(A.vRotation[i],B.vRotation[i],t);
-    return Result;
+    m_vecKeyFrame.resize(vecKeyFrame.size());
+
+    memcpy(m_vecKeyFrame.data(), vecKeyFrame.data(), sizeof(Key_Frame) * vecKeyFrame.size());
+
+    /* 복사 이거될려나? 해보지뭐 안되면 돌려 */
+
+    return S_OK;
 }
 
-void CChannel::Update_ConnectedBoneTransformMatrix(float fTrackPosition,
-                                                   const std::vector<CBone*>& vecBone,
-                                                   uint32& iCurrentFrameIndex) const
+Key_Frame CChannel::Make_CurTrackPositionFrame(float fCurrentTrackPosition, uint32& iCurKeyFrameIndex)
 {
-    if (m_iConnectedBoneIndex >= vecBone.size() || vecBone[m_iConnectedBoneIndex] == nullptr)
-        return;
-    float Matrix[16]{};
-    MakeSRT(Make_CurTrackPositionFrame(fTrackPosition, iCurrentFrameIndex), Matrix);
-    vecBone[m_iConnectedBoneIndex]->Set_TransformMatrix(Matrix);
+    KEY_FRAME NewKeyFrame{};
+
+    /* 이경우 내 마지막트랙포지션을 지나간경우 SRT가 그대로 이어져야한다.. */
+    if (fCurrentTrackPosition >= m_vecKeyFrame.back().fTrackPosition)
+        NewKeyFrame = m_vecKeyFrame.back();
+    else /* 아닌경우 선형보관을해야한다. */
+    {   /* 가장 최근에 지나친 keyFrame의 인덱스 번호 = 왼쪽, +1 = 오른쪽 */
+        /* 내 재생 프레임에 맞는 인덱스 번호를찾아야한다 프레임이 밀렸을떄 DT값에 따라서 내 왼쪽의 인덱스값이 인덱스값이 아니게 되는현상을 방지..*/
+        while (fCurrentTrackPosition > m_vecKeyFrame[iCurKeyFrameIndex + 1].fTrackPosition)
+            iCurKeyFrameIndex++;
+
+
+        Key_Frame LK{ m_vecKeyFrame[iCurKeyFrameIndex] }, RK{ m_vecKeyFrame[iCurKeyFrameIndex + 1] };
+        /* fTrackPosition=> 음...KeyFrame은 애니매이션의 Frame관련이고  TrackPostion 그 키 프레임 안에 */
+        float Ratio = (fCurrentTrackPosition - LK.fTrackPosition) / (RK.fTrackPosition - LK.fTrackPosition);
+
+        XMStoreFloat3(&NewKeyFrame.S, XMVectorLerp(XMLoadFloat3(&LK.S), XMLoadFloat3(&RK.S), Ratio));
+        XMStoreFloat4(&NewKeyFrame.R, XMQuaternionSlerp(XMLoadFloat4(&LK.R), XMLoadFloat4(&RK.R), Ratio));
+        XMStoreFloat3(&NewKeyFrame.T, XMVectorLerp(XMVectorSetW(XMLoadFloat3(&LK.T), 1.f), XMVectorSetW(XMLoadFloat3(&RK.T), 1.f), Ratio));
+    }
+
+    return NewKeyFrame;
 }
 
-CChannel* CChannel::Create(const Engine::CHANNEL_INFO& tInfo)
+void CChannel::Update_ConnectedBoneTransformMatrix(float fCurrentTrackPosition, const vector<CBone*>& vecBone , uint32& iCurKeyFrameIndex)
 {
-    CChannel* pInstance = new CChannel{};
-    if (FAILED(pInstance->Initialize(tInfo))) { pInstance->Release(); return nullptr; }
-    return pInstance;
+    if (vecBone.empty()) return;
+
+    /* 애니매이션이 끝난경우 CurTrackPosition이 0 으로 바뀐다.*/
+    if (fCurrentTrackPosition == 0.f)  iCurKeyFrameIndex = 0;
+
+    /* 이렇게 도출된 SRT 로 행렬을 만들어준다. */
+    vecBone[m_iConnectedBoneIndex]->Set_TransformMatrix(Make_CurTrackPositionFrame(fCurrentTrackPosition,iCurKeyFrameIndex).GetMatrix());
+
 }
-CChannel* CChannel::Clone() { return new CChannel{*this}; }
-void CChannel::Free() { m_vecKeyFrame.clear(); CBase::Free(); }
+
+void CChannel::Update_BlendAnimation(uint32 iChangeAnimFrameIndex, float fChangeAnimTrackPosition,const vector<CBone*>& vecBone, const vector<Float4x4>& vecBlendStartBoneMatrix ,float DTLearp)
+{
+    /* pPreAnimChannel이 가지고 있던 PreAnimIndex를 가지고 계산해준다  */
+
+    KEY_FRAME BlendKeyFrame{};
+    Matrix PreBoneMatrix = XMLoadFloat4x4(&vecBlendStartBoneMatrix[m_iConnectedBoneIndex]);
+
+    Vector4 PreS{}, PreR{}, PreT{};
+    XMMatrixDecompose(&PreS,&PreR,&PreT,PreBoneMatrix);
+
+
+    KEY_FRAME ChangeAnimKeyFrame = this->Make_CurTrackPositionFrame(fChangeAnimTrackPosition,iChangeAnimFrameIndex);
+
+    /* SRT 보간 */
+    XMStoreFloat3(&BlendKeyFrame.S, XMVectorLerp(PreS,XMLoadFloat3(&ChangeAnimKeyFrame.S), DTLearp));
+    XMStoreFloat4(&BlendKeyFrame.R, XMQuaternionSlerp(PreR,XMLoadFloat4(&ChangeAnimKeyFrame.R), DTLearp));
+    XMStoreFloat3(&BlendKeyFrame.T, XMVectorLerp(PreT,XMLoadFloat3(&ChangeAnimKeyFrame.T), DTLearp));
+
+    vecBone[m_iConnectedBoneIndex]->Set_TransformMatrix(BlendKeyFrame.GetMatrix());
+}
+
+CChannel* CChannel::Create(const CHANNEL_INFO& tInfo)
+{
+	CChannel* pChannel = new CChannel;
+
+    if (FAILED(pChannel->Initialize(tInfo)))
+    {
+        Safe_Release(pChannel);
+        MSG_BOX("Channel is failed To Create");
+        return nullptr;
+    }
+
+    return pChannel;
+}
+
+void CChannel::Free()
+{
+	__super::Free();
+
+	/* CChannel::Free() */
+    m_vecKeyFrame.clear();
+}

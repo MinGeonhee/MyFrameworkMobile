@@ -1,40 +1,56 @@
 #pragma once
-
 #include "CGameObject.h"
 
-class CContainerObject;
+namespace Engine
+{
+	class CTransform;
+	class CContainerObject;
+}
 
-class ENGINE_DLL CPartObject abstract : public CGameObject
+NS_BEGIN(Engine)
+
+class ENGINE_DLL CPartObject : public CGameObject
 {
 public:
-    struct PARTOBJECT_DESC : public Engine::GAMEOBJECT_DESC
-    {
-        const float* pParentWorldMatrix = nullptr;
-        CContainerObject* pMasterContainerObject = nullptr;
-    };
+	typedef struct PartObject_Desc : public GAMEOBJECT_DESC
+	{
 
+		/* 부모의 트랜스폼을 받아오자. */
+		const CTransform* PartObjectDesc_pParentTransform{nullptr};
+		/* 이 PartObject들을 가지고 있는 Master(주인)을 포인터 형식으로 들고있어주면 좋을거같은데? */
+		CContainerObject* PartObjectDesc_pMasterContainerObject{ nullptr };
+
+	}PARTOBJECT_DESC;
 protected:
-    explicit CPartObject(Device* pDevice, Context* pDeviceContext);
-    explicit CPartObject(const CPartObject& Prototype);
-    ~CPartObject() override = default;
+	explicit CPartObject(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	explicit CPartObject(const CPartObject& Proto);
+	virtual ~CPartObject() {}
+protected:
+	HRESULT				Proto_Initialize();
+	HRESULT				Clone_Initialize(void* pArg)override;
+	virtual HRESULT		Ready_Component(void* pArg);	
+public:
+	virtual void		Pre_Update(float DT)						override;
+	virtual void		Update(float DT)							override;
+	virtual void		Late_Update(float DT)						override;
+	virtual HRESULT		Add_RenderGroup()							override;
+	virtual HRESULT		Render(FD CCameraObjectBase* pRenderCam)	override;
 
 public:
-    HRESULT Proto_Initialize() override;
-    HRESULT Clone_Initialize(void* pArg) override;
-    HRESULT Ready_Component(void* pArg) override;
-    void Pre_Update(float fTimeDelta) override;
-    void Update(float fTimeDelta) override;
-    void Late_Update(float fTimeDelta) override;
-    HRESULT Add_RenderGroup() override;
-    HRESULT Render() override;
-
-    CContainerObject* Get_MasterContainerObject() const { return m_pMasterContainerObject; }
-    const float* Get_CombinedWorldMatrix() const { return m_matCombinedWorld; }
-    void SetUp_CombinedWorldMatrix(const float* pLocalWorldMatrix);
-    void Free() override;
-
+	CContainerObject*	Get_MasterContainerObject() const { return m_pMasterContainerObject; }
+	virtual bool		Get_IsInCamArea(const Float4& vRenderCamAreaXZ)override;
 protected:
-    const float* m_pMasterWorldMatrix = nullptr;
-    float m_matCombinedWorld[16]{};
-    CContainerObject* m_pMasterContainerObject = nullptr;
+	/* 부모행렬을 가지고 있을 변수 */
+	const Float4x4*	  m_pMasterWorldMatrix;
+	Float4x4		  m_matCombinedWorld;
+	CContainerObject* m_pMasterContainerObject;
+
+public:
+	void		      SetUp_CombinedWorldMatrix(const XMatrix_1& ParentWorldMatrix);
+
+public:
+	virtual void Free();
 };
+
+NS_END
+

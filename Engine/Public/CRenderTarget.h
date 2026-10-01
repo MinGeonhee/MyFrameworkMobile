@@ -1,20 +1,57 @@
 #pragma once
 #include "CBase.h"
-#include "Common/interface/RefCntAutoPtr.hpp"
-#include "Graphics/GraphicsEngine/interface/Texture.h"
-class ENGINE_DLL CRenderTarget final:public CBase
+
+
+namespace Engine
 {
-private:CRenderTarget()=default;
-public:
- ~CRenderTarget()override=default;
- HRESULT Initialize(const std::wstring& strName,uint32 w,uint32 h,const float* clearColor,Diligent::TEXTURE_FORMAT format,Diligent::IRenderDevice* device);
- Diligent::ITextureView* Get_RTV()const{return m_pRTV;}
- Diligent::ITextureView* Get_SRV()const{return m_pSRV;}
- const float* Get_ClearColor()const{return m_ClearColor;}
- static CRenderTarget* Create(const std::wstring& strName,uint32 w,uint32 h,const float* clearColor,Diligent::TEXTURE_FORMAT format,Diligent::IRenderDevice* device);
- void Free()override;
+	class CShader;
+	class CVIBuffer_Rect;
+}
+
+NS_BEGIN(Engine)
+
+class CRenderTarget final : public CBase
+{
 private:
- Diligent::RefCntAutoPtr<Diligent::ITexture> m_pTexture;
- Diligent::ITextureView* m_pRTV=nullptr;Diligent::ITextureView* m_pSRV=nullptr;
- float m_ClearColor[4]{};
+	explicit CRenderTarget(ComPtr<Device> pDevice,ComPtr<DeviceContext> pContext);
+	virtual ~CRenderTarget() {}
+public:
+	HRESULT					Initialize(uint32 iWidth, uint32 iHeight,const Color& vColor, TEXTURE_FORMAT eFormat);
+	HRESULT					Ready_Texture2D();
+	HRESULT					Ready_ShaderResourceView();
+	HRESULT					Ready_RenderTargetView();
+	HRESULT					Clear_RenderTargetView();
+public:
+	HRESULT					Bind_ShaderResource(const string& strBindTexName,CShader* pShader);
+public:
+	ShaderResourceView*	Get_SRV()		const	{ return m_pSRV; }
+	RenderTargetView*		Get_RTV()		const	{ return m_pRTV; }
+	uint32						Get_Widht()		const	{ return m_iWidth; }
+	uint32						Get_Height()	const	{ return m_iHeight; }
+	const Color&				Get_ClearColor() const	{ return m_vClearColor; }
+#ifdef  _DEBUG
+	HRESULT					Ready_Debug(float fX , float fY , float fSizeX, float fSizeY);
+	HRESULT					Render(CShader* pShader, CVIBuffer_Rect* pBuffer);
+#endif //  _DEBUG
+private:
+	Color					m_vClearColor;
+	uint32					m_iWidth;
+	uint32					m_iHeight;
+	TEXTURE_FORMAT				m_eFormat;
+private:
+	ComPtr<Device>			m_pDevice;
+	ComPtr<DeviceContext>	m_pDeviceContext;
+	RenderTargetView* m_pRTV;
+	ShaderResourceView*		m_pSRV;
+	Texture2D*		m_pTexture2D;
+
+#ifdef _DEBUG
+	Float4x4				m_matWorld;
+#endif
+
+public:
+	static CRenderTarget* Create(uint32 iWidth, uint32 iHeight, const Color& vColor, TEXTURE_FORMAT eFormat,ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	virtual void Free() override;
 };
+
+NS_END

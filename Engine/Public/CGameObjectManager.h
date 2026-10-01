@@ -1,67 +1,58 @@
-﻿#pragma once
-
+#pragma once
 #include "CBase.h"
 
-#include <map>
-#include <string>
-#include <vector>
+NS_BEGIN(Engine)
 
-class CGameObject;
 class CLayer;
+class CGameObject;
+class CGameManager;
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
-class ENGINE_DLL CGameObjectManager final : public CBase
+class CGameObjectManager :
+    public CBase
 {
 private:
-    explicit CGameObjectManager(Device* pDevice, Context* pDeviceContext);
-    HRESULT Initialize(uint32 iTotalLevelCount);
-    CLayer* Find_Layer(uint32 iLevelID, const std::wstring& strLayerTag) const;
+    explicit                    CGameObjectManager( ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+    virtual                     ~CGameObjectManager() {}
+private:
+    HRESULT                     Initialize(CONST GameObjectManager_Desc& tDesc);
+private:
+    CLayer*                     Find_Layer(uint32 iFindSceneID, const wstring& strFindLayerKey);
+    CLayer*                     Find_Layer_InGlobal(const wstring& strFindLayerKey);
+public:
+    CGameObject*                Find_GameObject_InGlobal(const wstring& strFindLayerKey, const wstring& strGameObjectName);
+    CGameObject*                Find_GameObject_InGlobal(const wstring& strFindLayerKey, CGameObject* pFindGameObject);
+    CGameObject*                Find_GameObject(uint32 iFindSceneID, const wstring& strFindLayerKey, CGameObject* pFindGameObject);
+    CGameObject*                Find_GameObject(uint32 iFindSceneID, const wstring& strFindLayerKey, const wstring& strGameObjectName);
+    CGameObject*                Add_GameObject(uint32 iFindProtoSceneID, const wstring& strFindLayerkey, uint32 iAddCloneSceneID, const wstring& strAddLayerKey, void* pArg);
+    CGameObject*                Add_GameObject_ByGlobalProto(const wstring& strFindProtoKey, const wstring& strAddLayerKey,void* pArg = nullptr, uint32 iAddCloneSceneID = GLOBAL);
+public:
+    void                        Pre_Update( uint32 iSceneID , float DT);
+    void                        Update(uint32 iSceneID,float DT);
+    void                        Late_Update(uint32 iSceneID,float DT);
+    HRESULT                     Add_RenderGroup(uint32 iSceneID);
+    void                        Clean_DeadObject();
 
 public:
-    ~CGameObjectManager() override = default;
-    CGameObject* Find_GameObject(uint32 iLevelID,
-                                 const std::wstring& strLayerTag,
-                                 const std::wstring& strGameObjectName) const;
-    CGameObject* Find_GameObject(uint32 iLevelID,
-                                 const std::wstring& strLayerTag,
-                                 CGameObject* pGameObject) const;
-    CGameObject* Add_GameObject(uint32 iPrototypeLevelID,
-                                const std::wstring& strPrototypeTag,
-                                uint32 iCloneLevelID,
-                                const std::wstring& strLayerTag,
-                                void* pArg = nullptr);
-    HRESULT Add_GameObject_ToLayer(uint32 iLevelID,
-                                   const std::wstring& strLayerTag,
-                                   CGameObject* pGameObject);
-
-    void Pre_Update(uint32 iLevelID, float fTimeDelta);
-    void Update(uint32 iLevelID, float fTimeDelta);
-    void Late_Update(uint32 iLevelID, float fTimeDelta);
-    HRESULT Add_RenderGroup(uint32 iLevelID);
-    void Add_ColliderGroup(uint32 iLevelID);
-    void Clean_DeadObject();
-    HRESULT Clear_GameObjectByLevelID(uint32 iLevelID);
-
-    const std::map<std::wstring, CLayer*>* Get_LevelLayers(uint32 iLevelID) const;
-    CLayer* Get_Layer(uint32 iLevelID, const std::wstring& strLayerTag) const;
-
-    static CGameObjectManager* Create(uint32 iTotalLevelCount,
-                                      Device* pDevice,
-                                      Context* pDeviceContext);
-    void Free() override;
-
+    void                        Add_ColliderGroup(uint32 iSceneID);
+public:
+    const map<const wstring, CLayer*>&          GetCurSceneLayer(uint32 iCurSceneID) { return m_mapLayer[iCurSceneID]; }
+    const vector<map<const wstring, CLayer*>>&  Get_AllSceneLayer() { return m_mapLayer; }
+    const map<const wstring, CLayer*>&          GetGlobalLayer() { return m_mapGlobalLayers; }
+    const CLayer*                               Get_Layer(uint32 iSceneID, const wstring& wstrLayerName);
+public:
+    HRESULT                                     Clear_GameObjectByScneeID(uint32 iSceneID);
 private:
-    uint32 m_iTotalLevelCount = 0;
-    std::vector<std::map<std::wstring, CLayer*>> m_LevelLayers;
-    Device* m_pDevice = nullptr;
-    Context* m_pDeviceContext = nullptr;
+    uint32                                      m_iTotalSceneNum;
+    vector<map<const wstring, CLayer*>>         m_mapLayer;
+    map<const wstring, CLayer*>                 m_mapGlobalLayers;
+private:
+    ComPtr<Device>                              m_pDevice;
+    ComPtr<DeviceContext>                       m_pDeviceContext;
+    CGameManager*                               m_pGameManager;
+public:
+    static CGameObjectManager* Create(CONST GameObjectManager_Desc& tDesc,ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+    virtual void    Free() override;
 };
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+NS_END
 

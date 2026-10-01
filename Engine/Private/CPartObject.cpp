@@ -1,67 +1,92 @@
-#include "pch.h"
 #include "CPartObject.h"
 #include "CContainerObject.h"
+#include "CCameraObjectBase.h"
+#include "CTransform.h"
 
-namespace
+CPartObject::CPartObject(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
+    : CGameObject(pDevice, pContext) , m_matCombinedWorld{} , m_pMasterWorldMatrix(nullptr) , m_pMasterContainerObject(nullptr)
 {
-void Identity(float* pMatrix)
-{
-    std::fill(pMatrix, pMatrix + 16, 0.f);
-    pMatrix[0] = pMatrix[5] = pMatrix[10] = pMatrix[15] = 1.f;
-}
-}
-
-CPartObject::CPartObject(Device* pDevice, Context* pDeviceContext)
-    : CGameObject{pDevice, pDeviceContext}
-{
-    Identity(m_matCombinedWorld);
-    Set_IsPartObject(true);
+    m_isPartObject = true;
 }
 
-CPartObject::CPartObject(const CPartObject& Prototype)
-    : CGameObject{Prototype}
+CPartObject::CPartObject(const CPartObject& Proto)
+    : CGameObject(Proto), m_matCombinedWorld(Proto.m_matCombinedWorld)
+    , m_pMasterWorldMatrix(Proto.m_pMasterWorldMatrix), m_pMasterContainerObject(Proto.m_pMasterContainerObject)
 {
-    Identity(m_matCombinedWorld);
-    Set_IsPartObject(true);
+    m_isPartObject = true;
 }
 
-HRESULT CPartObject::Proto_Initialize() { return CGameObject::Proto_Initialize(); }
+HRESULT CPartObject::Proto_Initialize()
+{
+    if (FAILED(__super::Proto_Initialize()))
+        return E_FAIL;
+
+    return S_OK;
+}
 
 HRESULT CPartObject::Clone_Initialize(void* pArg)
 {
-    if (pArg == nullptr)
-        return E_INVALIDARG;
+    if (FAILED(__super::Clone_Initialize(pArg)))
+        return E_FAIL;
+
     PARTOBJECT_DESC* pDesc = static_cast<PARTOBJECT_DESC*>(pArg);
-    m_pMasterContainerObject = pDesc->pMasterContainerObject;
-    m_pMasterWorldMatrix = pDesc->pParentWorldMatrix;
-    return CGameObject::Clone_Initialize(pArg);
+    m_pMasterContainerObject = pDesc->PartObjectDesc_pMasterContainerObject;
+    /* Master World Ptr */
+    m_pMasterWorldMatrix = m_pMasterContainerObject->GetTransform()->Get_matWorldPtr();
+
+    if (FAILED(CPartObject::Ready_Component(pArg)))
+        return E_FAIL;
+
+    return S_OK;
 }
 
-HRESULT CPartObject::Ready_Component(void* pArg) { return CGameObject::Ready_Component(pArg); }
-void CPartObject::Pre_Update(float fTimeDelta) { CGameObject::Pre_Update(fTimeDelta); }
-void CPartObject::Update(float fTimeDelta) { CGameObject::Update(fTimeDelta); }
-void CPartObject::Late_Update(float fTimeDelta) { CGameObject::Late_Update(fTimeDelta); }
-HRESULT CPartObject::Add_RenderGroup() { return CGameObject::Add_RenderGroup(); }
-HRESULT CPartObject::Render() { return CGameObject::Render(); }
 
-void CPartObject::SetUp_CombinedWorldMatrix(const float* pLocalWorldMatrix)
+HRESULT CPartObject::Ready_Component(void* pArg)
 {
-    if (pLocalWorldMatrix == nullptr) return;
-    if (m_pMasterWorldMatrix == nullptr)
-    {
-        std::copy(pLocalWorldMatrix, pLocalWorldMatrix + 16, m_matCombinedWorld);
-        return;
-    }
-    float Result[16]{};
-    for (uint32 r=0;r<4;++r) for(uint32 c=0;c<4;++c) for(uint32 k=0;k<4;++k)
-        Result[r*4+c] += pLocalWorldMatrix[r*4+k] * m_pMasterWorldMatrix[k*4+c];
-    std::copy(std::begin(Result), std::end(Result), m_matCombinedWorld);
+    return S_OK;
 }
+
+void CPartObject::Pre_Update(float DT)
+{
+    __super::Pre_Update(DT);
+}
+
+void CPartObject::Update(float DT)
+{
+    __super::Update(DT);
+
+}
+
+void CPartObject::Late_Update(float DT)
+{
+    __super::Late_Update(DT);
+}
+
+HRESULT CPartObject::Add_RenderGroup()
+{
+    return S_OK;
+}
+
+HRESULT CPartObject::Render(FD CCameraObjectBase* pRenderCam)
+{
+    return S_OK;
+}
+
+bool CPartObject::Get_IsInCamArea(const Float4& vRenderCamAreaXZ)
+{
+    return m_pMasterContainerObject->GetTransform()->Get_IsInCamArea(vRenderCamAreaXZ);
+}
+
+void CPartObject::SetUp_CombinedWorldMatrix(const XMatrix_1& ParentWorldMatrix)
+{
+    XMStoreFloat4x4(&m_matCombinedWorld, m_pTransformCom->Get_matWorld_ToCal() * ParentWorldMatrix);
+}
+
+
 
 void CPartObject::Free()
 {
-    // Master는 PartObject를 소유하므로 역참조는 AddRef하지 않아 순환 참조를 만들지 않는다.
-    m_pMasterContainerObject = nullptr;
-    m_pMasterWorldMatrix = nullptr;
-    CGameObject::Free();
+    __super::Free();
+
+    /* CPartObject::Free() */
 }

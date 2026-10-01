@@ -1,71 +1,82 @@
 #include "CTimeManger.h"
-
 #include "CTimer.h"
 
-CTimeManger::~CTimeManger()
+
+CTimeManger::CTimeManger()
 {
-    Free();
+	m_mapTimer.clear();
 }
 
-HRESULT CTimeManger::Initialize()
+HRESULT	CTimeManger::Initialize()
 {
-    return S_OK;
+	return S_OK;
 }
 
-HRESULT CTimeManger::Add_Timer(const std::wstring& strKey)
+HRESULT	CTimeManger::Add_Timer(const wstring strKey)
 {
-    if (Find_Timer(strKey) != nullptr)
-        return E_FAIL;
+	CTimer* pTimer = { nullptr };
 
-    CTimer* pTimer = CTimer::Create();
-    if (pTimer == nullptr)
-        return E_FAIL;
+	pTimer = CTimeManger::Find_Timer(strKey);
+	
+	if (pTimer != nullptr)
+		return E_FAIL;
 
-    m_mapTimer.emplace(strKey, pTimer);
-    return S_OK;
+	pTimer = CTimer::Create();
+	if (pTimer == nullptr)
+		return E_FAIL;
+
+	m_mapTimer.emplace(strKey , pTimer);
+
+	return S_OK;
 }
 
-float CTimeManger::Get_TimeDelta(const std::wstring& strKey) const
+float CTimeManger::Get_TimeDelta(const wstring strKey)
 {
-    CTimer* pTimer = Find_Timer(strKey);
-    return pTimer != nullptr ? pTimer->Get_TimeDelta() : 0.f;
+	CTimer* pTimer = CTimeManger::Find_Timer(strKey);
+
+	if (pTimer == nullptr)
+		return 0.f;
+
+	return pTimer->Get_TimeDelta();
 }
 
-uint32 CTimeManger::Get_FPS(const std::wstring& strKey) const
+uint32 CTimeManger::Get_FPS(const wstring strKey)
 {
-    CTimer* pTimer = Find_Timer(strKey);
-    return pTimer != nullptr ? pTimer->Get_FPS() : 0;
+	return m_mapTimer[strKey]->Get_FPS();
 }
 
-void CTimeManger::Compute_TimeDelta(const std::wstring& strKey)
+void	CTimeManger::Compute_TimeDelta(const wstring strKey)
 {
-    CTimer* pTimer = Find_Timer(strKey);
-    if (pTimer != nullptr)
-        pTimer->Compute_TimeDelta();
-}
+	CTimer* pTimer = Find_Timer(strKey);
+	if (nullptr == pTimer)
+		return;
 
-CTimer* CTimeManger::Find_Timer(const std::wstring& strKey) const
+	pTimer->Compute_TimeDelta();
+}
+CTimer* CTimeManger::Find_Timer(const wstring strKey)
 {
-    const auto Iter = m_mapTimer.find(strKey);
-    return Iter != m_mapTimer.end() ? Iter->second : nullptr;
+	auto iter = m_mapTimer.find(strKey);
+
+	if (iter == m_mapTimer.end())
+		return nullptr;
+
+	return iter->second;
 }
 
 CTimeManger* CTimeManger::Create()
 {
-    CTimeManger* pTimeManager = new CTimeManger{};
-    if (FAILED(pTimeManager->Initialize()))
-    {
-        delete pTimeManager;
-        return nullptr;
-    }
-    return pTimeManager;
+	CTimeManger* pTimeManager = new CTimeManger;
+
+	INIT_FAILED_CEHCK(pTimeManager);
+
+	return pTimeManager;
 }
 
 void CTimeManger::Free()
 {
-    for (auto& TimerPair : m_mapTimer)
-        delete TimerPair.second;
-    m_mapTimer.clear();
+	__super::Free();
 
-    CBase::Free();
+	for (auto TImer_Pair : m_mapTimer)
+		Safe_Release(TImer_Pair.second);
+	m_mapTimer.clear();
 }

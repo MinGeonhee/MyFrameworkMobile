@@ -1,46 +1,29 @@
 #pragma once
 #include "CVIBuffer.h"
-#include "Common/interface/BasicMath.hpp"
 
-class CShader;
-class CTexture;
+NS_BEGIN(Engine)
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 
-class ENGINE_DLL CVIBuffer_Rect final : public CVIBuffer
+class ENGINE_DLL CVIBuffer_Rect final :  public CVIBuffer
 {
 private:
-    explicit CVIBuffer_Rect(Device* pDevice, Context* pDeviceContext);
-    explicit CVIBuffer_Rect(const CVIBuffer_Rect& Prototype);
-    ~CVIBuffer_Rect() override = default;
-
-    HRESULT Proto_Initialize();
-    HRESULT Clone_Initialize(void* pArg) override;
+	explicit CVIBuffer_Rect(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	explicit CVIBuffer_Rect(const CVIBuffer_Rect& ProtoType);
+	virtual	 ~CVIBuffer_Rect() {}
+private:
+	HRESULT	Proto_Initialize();
+	virtual HRESULT	Clone_Initialize(void* pArg) override;
 
 public:
-    void Set_Shader(CShader* pShader);
-    void Set_Texture(CTexture* pTexture, uint32 iTextureIndex = 0);
-    void Set_UVRect(float fOffsetU, float fOffsetV, float fScaleU, float fScaleV);
-    void Set_WorldViewProjection(const Diligent::float4x4& WorldViewProjection);
-    void Set_ScreenSpace();
-    HRESULT Render() override;
-    HRESULT Render_Solid();
-    static CVIBuffer_Rect* Create(Device* pDevice, Context* pDeviceContext);
-    CComponent* Clone(void* pArg) override;
-    void Free() override;
+	static	CVIBuffer_Rect*	Create(ComPtr<Device> pDevice , ComPtr<DeviceContext> pContext);
+	virtual CComponent*		Clone(void* pArg) override;
+	virtual void Free() override;
 
-private:
-    CShader* m_pShader = nullptr;
-    CTexture* m_pTexture = nullptr;
-    uint32 m_iTextureIndex = 0;
-    float m_vUVRect[4]{0.f, 0.f, 1.f, 1.f};
-    Diligent::float4x4 m_WorldViewProjection = Diligent::float4x4::Identity();
-    float m_vTransformOption[4]{};
+	// CVIBuffer을(를) 통해 상속됨
+	const INPUT_ELEMENT_DESC*  GetInputElementDesc() override;
+
+	// CVIBuffer을(를) 통해 상속됨
+	uint32 GetInputElementDescSize() override;
 };
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+NS_END

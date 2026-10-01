@@ -1,49 +1,73 @@
 #pragma once
-
 #include "CBase.h"
-#include "Engine_Enum.h"
-#include "Engine_Struct.h"
 
-class CBone;
-class CChannel;
-
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
-class ENGINE_DLL CAnimation final : public CBase
+namespace Engine
 {
+	class Model;
+	class CBone;
+	class CChannel;
+}
+
+NS_BEGIN(Engine)
+
+class CAnimation : public CBase
+{
+public:
+	explicit CAnimation();
+	explicit CAnimation(const CAnimation& Proto);
+	virtual ~CAnimation();
 private:
-    CAnimation() = default;
-    explicit CAnimation(const CAnimation& Prototype);
-    ~CAnimation() override = default;
+	HRESULT		Initialize(const ANIM_INFO& tInfo);
+
+	HRESULT		Ready_Channel(const vector<CHANNEL_INFO>& vecChannelInfo);
+public:
+
+	void				Set_IsAnimationEnd(bool isEnd) { m_isAnimationEnd = isEnd; }
+	void				SetPlayType(ANIMATION_PLAYTYPE ePlayType) { m_ePlayType = ePlayType; }
+	void				ResetAnimation();
 
 public:
-    HRESULT Initialize(const Engine::ANIMATION_INFO& tInfo);
-    void Set_IsAnimationEnd(bool isEnd) { m_isAnimationEnd = isEnd; }
-    void SetPlayType(ANIMATION_PLAYTYPE ePlayType) { m_ePlayType = ePlayType; }
-    void ResetAnimation();
-    bool Get_IsAnimationEnd() const { return m_isAnimationEnd; }
-    float Get_AnimProgress() const;
-    const std::string& Get_AnimationName() const { return m_strName; }
-    void Update_TransformMatrix(float fSpeed, float fTimeDelta, const std::vector<CBone*>& vecBone, bool& isEnd);
+	float				Get_AnimProgress();
+	uint32				Get_CurAnimKeyFrameIndex();
+	bool				Get_IsAnimationEnd() const { return m_isAnimationEnd; }
+	uint32				Get_ChannelCount() const { return static_cast<uint32>(m_vecChannel.size());}
+	
+	string				Get_AnimationName() const { return string(m_szName); }
+	
+	void				Update_TransformMatrix(float fTickPerSecond,float DT, const vector<CBone*>& vecBone, bool& isEnd);
 
-    static CAnimation* Create(const Engine::ANIMATION_INFO& tInfo);
-    CAnimation* Clone();
-    void Free() override;
+	void				Update_BlendAnimation(const vector<CBone*>& vecOriginBone,const vector<Float4x4>& vecBlendStartBoneMatrix,float fLerpTime);
+
+
+#ifdef _DEBUG
+public:
+
+	void				ImGui_Update();
+
+#endif // _DEBUG
+
+
 
 private:
-    std::string m_strName;
-    std::vector<CChannel*> m_vecChannel;
-    std::vector<uint32> m_vecCurrentKeyFrameIndex;
-    ANIMATION_PLAYTYPE m_ePlayType = ANIMATION_PLAYTYPE::LOOP;
-    float m_fTicksPerSecond = 1.f;
-    float m_fDuration = 0.f;
-    float m_fCurrentTrackPosition = 0.f;
-    bool m_isAnimationEnd = false;
+	char				m_szName[MAX_PATH];
+	
+	vector<CChannel*>	m_vecChannel;
+
+	vector<uint32>		m_vecCurKeyFrameIndex;
+
+	ANIMATION_PLAYTYPE	m_ePlayType;
+	
+	/* 이 애니매이션이 바껴야할떄 선형보관 값을 어케할것인가...  */
+	float				m_fTickPerSecond;    // 애니매이션 재생 속도
+	float				m_fDuration;		 // 요개이제 애니매이션의 전체 재생 길이 
+	float				m_fCurTrackPosition; // 현재 이 애니매이션의 재생되고있는 Track 포지션 깊은복사를해서 속도가 빨라지는 현상을 막자.
+	
+	bool				m_isAnimationEnd;
+
+public:
+	static CAnimation* Create(const ANIM_INFO& tInfo);
+	CAnimation*	 	   Clone();
+	virtual void Free()override;
 };
 
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
+NS_END

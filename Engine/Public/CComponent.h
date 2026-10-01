@@ -1,34 +1,44 @@
 #pragma once
 #include "CBase.h"
 
-class ENGINE_DLL CComponent abstract : public CBase
+NS_BEGIN(Engine)
+
+class CGameObject;
+
+class ENGINE_DLL CComponent abstract :
+    public CBase 
 {
 protected:
-    explicit CComponent(Device* pDevice, Context* pDeviceContext);
+    explicit CComponent(ComPtr<Device> pDevice , ComPtr<DeviceContext> pContext);
     explicit CComponent(const CComponent& Prototype);
-    ~CComponent() override = default;
-
+    virtual ~CComponent();
 public:
-    void Set_Owner(CBase* pOwner);
-    CBase* Get_Owner() const { return m_pOwner; }
-
-    virtual HRESULT Proto_Initialize();
-    virtual HRESULT Clone_Initialize(void* pArg);
-    virtual void Pre_Update(float fTimeDelta);
-    virtual void Update(float fTimeDelta);
-    virtual void Late_Update(float fTimeDelta);
-    virtual HRESULT Render();
-
-    bool Get_IsActive() const { return m_isActive; }
-    void Set_IsActive(bool isActive) { m_isActive = isActive; }
-
+    void                    Set_Owner(CBase* pOwner);
+    CBase*                  Get_Owner() const { return m_pOwner; }
 protected:
-    Device* m_pDevice = nullptr;
-    Context* m_pDeviceContext = nullptr;
-    CBase* m_pOwner = nullptr;
-    bool m_isActive = true;
-
+    virtual HRESULT         Proto_Initialize();
+    virtual HRESULT         Clone_Initialize(void* pArg);
 public:
-    virtual CComponent* Clone(void* pArg) = 0;
-    void Free() override;
+    virtual void            Pre_Update(float DT);
+    virtual void            Update(float DT);
+    virtual void            Late_Update(float DT);
+    virtual HRESULT         Render(FD CCameraObjectBase* pRenderCam);
+public:
+    bool                    Get_IsActive() { return m_isActive; }
+    void                    Set_IsActive(bool isActive) { m_isActive = isActive; }
+#ifdef _DEBUG
+    virtual void            ImGuiUpdate();
+#endif // _DEBUG
+protected:
+    bool                    m_isActive;
+    ComPtr<Device>          m_pDevice;
+    ComPtr<DeviceContext>   m_pDeviceContext;
+protected:
+     CBase*                 m_pOwner;
+     MAKE_TYPE              m_eMakeType;
+public:
+    virtual CComponent* Clone( void* pArg) PURE;
+    virtual void Free()override;
 };
+
+NS_END

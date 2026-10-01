@@ -1,9 +1,42 @@
 #pragma once
 #include "CBase.h"
-class CCell;
-class ENGINE_DLL CCellManager final:public CBase
+
+namespace Engine
 {
-private:CCellManager()=default;
-public:~CCellManager()override=default;HRESULT Add_Cells(const std::wstring& key,const std::vector<CCell*>& cells);const std::vector<CCell*>& Get_Cells(const std::wstring& key)const;bool Get_IsCellRender()const{return m_isCellRender;}void Set_IsCellRender(bool b){m_isCellRender=b;}static CCellManager* Create();void Free()override;
-private:std::unordered_map<std::wstring,std::vector<CCell*>>m_Cells;bool m_isCellRender=false;static const std::vector<CCell*>s_Empty;
+	class CCell;
+}
+
+
+NS_BEGIN(Engine)
+
+class CCellManager :public CBase
+{
+private:
+	explicit CCellManager(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	virtual ~CCellManager() = default;
+
+private:
+	HRESULT				Initialize();
+public:
+
+	HRESULT					Add_Cells(const wstring& wstrCellPath, const wstring& AddKey);
+	const vector<CCell*>&	Get_Cells(const wstring& wstrFindKey);
+
+	bool					Get_IsCellRender() const { return m_isCellRender;}
+	void					Set_IsCellRender(bool isRender) { m_isCellRender = isRender;}
+
+private:
+	static vector<CCell*>	m_vecCellDummy;
+	/* Path의 이름값으로아마 저장될 예정이다 */
+	map< wstring, vector<CCell*>> m_mapCells;
+
+	bool					m_isCellRender;
+private:
+	ComPtr<Device>			m_pDevice;
+	ComPtr<DeviceContext>	m_pDeviceContext;
+public:
+	static	CCellManager*	Create(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext);
+	virtual	void			Free() override;
 };
+
+NS_END
