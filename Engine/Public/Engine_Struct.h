@@ -713,7 +713,7 @@ namespace Engine
 		{
 			std::filesystem::path psFile(wstrPath);
 
-			wstrFileFullPath = psFile.c_str();
+			wstrFileFullPath = psFile.wstring();
 			wstrFileNameEXT = psFile.filename().wstring();
 			wstrFileName = psFile.filename().stem().wstring();
 			wstrFileEXT = psFile.extension().wstring();

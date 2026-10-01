@@ -5,6 +5,7 @@
 #include "Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h"
 #include "Platforms/Win32/interface/Win32NativeWindow.h"
 #elif defined(__ANDROID__)
+#include <android/native_window.h>
 #include "Platforms/Android/interface/AndroidNativeWindow.h"
 #endif
 

@@ -3,7 +3,7 @@
 #include "CGameManager.h"
 #include "CUI_Quad.h"
 
-#include <wincodec.h> 
+
 
 
 CScreenShotManager::CScreenShotManager(ComPtr<Device> pDevice, ComPtr<DeviceContext> pContext)
@@ -29,9 +29,11 @@ HRESULT CScreenShotManager::Add_ScreenShot(const wstring& strKey, CScreenShot* p
 	if (strKey.empty())
 	{
 		/* 현재 날짜 가져오는거 없나... */
-		SYSTEMTIME st;
-		GetLocalTime(&st);
-		wstring wstrTime = std::to_wstring(st.wYear) + L"-"+ std::to_wstring(st.wMonth)+ L"-" + std::to_wstring(st.wDay) + L"-" + std::to_wstring(st.wMilliseconds);
+		const auto tNow = std::chrono::system_clock::now();
+		const std::time_t tTime = std::chrono::system_clock::to_time_t(tNow);
+		const std::tm tLocal = *std::localtime(&tTime);
+		const long long iMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(tNow.time_since_epoch()).count() % 1000;
+		wstring wstrTime = std::to_wstring(tLocal.tm_year + 1900) + L"-" + std::to_wstring(tLocal.tm_mon + 1) + L"-" + std::to_wstring(tLocal.tm_mday) + L"-" + std::to_wstring(iMilliseconds);
 		m_mapScreenShot.emplace(wstrTime, pScreenShot);
 
 		return S_OK;

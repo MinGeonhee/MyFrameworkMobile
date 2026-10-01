@@ -17,7 +17,7 @@ HRESULT CFloder::Initialize(CFloder* pParentFloder,const wstring& wstrRootPath, 
     wstring wstr = String_To_WString(NormalizePath(filesystem::canonical(wstrRootPath)));
 
     m_tInfo.wstrFloderFullPath = String_To_WString(NormalizePath(filesystem::canonical(wstrRootPath))).c_str();
-    m_tInfo.wstrFloderName = path(wstrRootPath).filename();
+    m_tInfo.wstrFloderName = path(wstrRootPath).filename().wstring();
 
     /* ParentFloder Setting 나를 가지고있는 폴더의 포인터*/
     /* 약한참조 레퍼런스 증가 x */
@@ -44,7 +44,7 @@ HRESULT CFloder::Initialize(CFloder* pParentFloder,const wstring& wstrRootPath, 
         else
         {
             ++m_tInfo.iCountFiles;
-            CFile* pFile = CFile::Create(CurPath, pDevice,pContext);
+            CFile* pFile = CFile::Create(CurPath.wstring(), pDevice,pContext);
             NULLPTR_RETURN_EFAIL(pFile)
             m_vecFile.push_back(pFile);
         }

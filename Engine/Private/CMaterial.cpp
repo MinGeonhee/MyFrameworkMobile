@@ -4,6 +4,22 @@
 #include "CFileFunction.h"
 #include "CTexture.h"
 
+namespace
+{
+	/* "Name.%d.ext" 형식의 연속 텍스처 개수 (0 부터 끊기는 곳까지). Android assets 에서도 동작하도록 File_Exists 사용 */
+	uint32 Count_SequenceFiles(const wstring& wstrFormatPath)
+	{
+		uint32 iCount = 0;
+		wchar_t szPath[MAX_PATH] = {};
+		for (;; ++iCount)
+		{
+			swprintf(szPath, MAX_PATH, wstrFormatPath.c_str(), iCount);
+			if (!File_Exists(szPath))
+				return iCount;
+		}
+	}
+}
+
 
 
 ShaderResourceView* CMaterial::m_pSRVs[Cast_Uint(MATERIAL_TYPE::END)] = {};
@@ -86,21 +102,11 @@ HRESULT CMaterial::Ready_Diffuse(const wstring& wstrDiffusePath)
 		filesystem::path FullFilePath(wstrDiffusePath);
 		filesystem::path PathFileName(FullFilePath.filename().stem());
 		wstring wstrFileName = PathFileName.wstring();
-		wstring wstrExt = FullFilePath.extension();
+		wstring wstrExt = FullFilePath.extension().wstring();
 		wstring wstrCheckFileName = wstrFileName.erase( wstrFileName.find(L".0"));
 		wstring wstrChangeFilepath = FullFilePath.replace_filename(wstrCheckFileName + L".%d" + wstrExt).wstring();
 
-		uint32 iCount = 0;
-		for (auto& Filepath : filesystem::directory_iterator(FullFilePath.remove_filename()))
-		{
-			filesystem::path FullPath = Filepath.path();
-			wstring wstrPath = FullPath.filename().stem();
-
-			size_t pos = wstrPath.find(wstrCheckFileName);
-
-			if (pos != std::wstring::npos)
-				iCount++;
-		}
+		const uint32 iCount = Count_SequenceFiles(wstrChangeFilepath);
 
 		m_arrayMaterialTextures[Cast_Uint(MATERIAL_TYPE::DIFFUSE)] = CFileFunction::CreateShaderResourceViewsReadFile(wstrChangeFilepath, iCount , m_pDevice);
 
@@ -124,21 +130,11 @@ HRESULT CMaterial::Ready_Ambient(const wstring& wstrAmbientPath)
 		filesystem::path FullFilePath(wstrAmbientPath);
 		filesystem::path PathFileName(FullFilePath.filename().stem());
 		wstring wstrFileName = PathFileName.wstring();
-		wstring wstrExt = FullFilePath.extension();
+		wstring wstrExt = FullFilePath.extension().wstring();
 		wstring wstrCheckFileName = wstrFileName.erase(wstrFileName.find(L".0"));
 		wstring wstrChangeFilepath = FullFilePath.replace_filename(wstrCheckFileName + L".%d" + wstrExt).wstring();
 
-		uint32 iCount = 0;
-		for (auto& Filepath : filesystem::directory_iterator(FullFilePath.remove_filename()))
-		{
-			filesystem::path FullPath = Filepath.path();
-			wstring wstrPath = FullPath.filename().stem();
-
-			size_t pos = wstrPath.find(wstrCheckFileName);
-
-			if (pos != std::wstring::npos)
-				iCount++;
-		}
+		const uint32 iCount = Count_SequenceFiles(wstrChangeFilepath);
 
 		m_arrayMaterialTextures[Cast_Uint(MATERIAL_TYPE::AMBIENT)] = CFileFunction::CreateShaderResourceViewsReadFile(wstrChangeFilepath, iCount, m_pDevice);
 	}
@@ -165,21 +161,11 @@ HRESULT CMaterial::Ready_Normal(const wstring& wstrNormalPath)
 		filesystem::path FullFilePath(wstrNormalPath);
 		filesystem::path PathFileName(FullFilePath.filename().stem());
 		wstring wstrFileName = PathFileName.wstring();
-		wstring wstrExt = FullFilePath.extension();
+		wstring wstrExt = FullFilePath.extension().wstring();
 		wstring wstrCheckFileName = wstrFileName.erase(wstrFileName.find(L".0"));
 		wstring wstrChangeFilepath = FullFilePath.replace_filename(wstrCheckFileName + L".%d" + wstrExt).wstring();
 
-		uint32 iCount = 0;
-		for (auto& Filepath : filesystem::directory_iterator(FullFilePath.remove_filename()))
-		{
-			filesystem::path FullPath = Filepath.path();
-			wstring wstrPath = FullPath.filename().stem();
-
-			size_t pos = wstrPath.find(wstrCheckFileName);
-
-			if (pos != std::wstring::npos)
-				iCount++;
-		}
+		const uint32 iCount = Count_SequenceFiles(wstrChangeFilepath);
 
 		m_arrayMaterialTextures[Cast_Uint(MATERIAL_TYPE::NORMAL)] = CFileFunction::CreateShaderResourceViewsReadFile(wstrChangeFilepath, iCount, m_pDevice);
 	}
@@ -203,21 +189,11 @@ HRESULT CMaterial::Ready_Specular(const wstring& wstrSpecularPath)
 		filesystem::path FullFilePath(wstrSpecularPath);
 		filesystem::path PathFileName(FullFilePath.filename().stem());
 		wstring wstrFileName = PathFileName.wstring();
-		wstring wstrExt = FullFilePath.extension();
+		wstring wstrExt = FullFilePath.extension().wstring();
 		wstring wstrCheckFileName = wstrFileName.erase(wstrFileName.find(L".0"));
 		wstring wstrChangeFilepath = FullFilePath.replace_filename(wstrCheckFileName + L".%d" + wstrExt).wstring();
 
-		uint32 iCount = 0;
-		for (auto& Filepath : filesystem::directory_iterator(FullFilePath.remove_filename()))
-		{
-			filesystem::path FullPath = Filepath.path();
-			wstring wstrPath = FullPath.filename().stem();
-
-			size_t pos = wstrPath.find(wstrCheckFileName);
-
-			if (pos != std::wstring::npos)
-				iCount++;
-		}
+		const uint32 iCount = Count_SequenceFiles(wstrChangeFilepath);
 
 		m_arrayMaterialTextures[Cast_Uint(MATERIAL_TYPE::SPECULAR)] = CFileFunction::CreateShaderResourceViewsReadFile(wstrChangeFilepath, iCount, m_pDevice);
 	}
@@ -239,21 +215,11 @@ HRESULT CMaterial::Ready_Emissive(const wstring& wstrEmissivePath)
 		filesystem::path FullFilePath(wstrEmissivePath);
 		filesystem::path PathFileName(FullFilePath.filename().stem());
 		wstring wstrFileName = PathFileName.wstring();
-		wstring wstrExt = FullFilePath.extension();
+		wstring wstrExt = FullFilePath.extension().wstring();
 		wstring wstrCheckFileName = wstrFileName.erase(wstrFileName.find(L".0"));
 		wstring wstrChangeFilepath = FullFilePath.replace_filename(wstrCheckFileName + L".%d" + wstrExt).wstring();
 
-		uint32 iCount = 0;
-		for (auto& Filepath : filesystem::directory_iterator(FullFilePath.remove_filename()))
-		{
-			filesystem::path FullPath = Filepath.path();
-			wstring wstrPath = FullPath.filename().stem();
-
-			size_t pos = wstrPath.find(wstrCheckFileName);
-
-			if (pos != std::wstring::npos)
-				iCount++;
-		}
+		const uint32 iCount = Count_SequenceFiles(wstrChangeFilepath);
 
 		m_arrayMaterialTextures[Cast_Uint(MATERIAL_TYPE::EMISSIVE)] = CFileFunction::CreateShaderResourceViewsReadFile(wstrChangeFilepath, iCount, m_pDevice);
 	}
@@ -278,21 +244,11 @@ HRESULT CMaterial::Ready_Metal(const wstring& wstrMetalPath)
 		filesystem::path FullFilePath(wstrMetalPath);
 		filesystem::path PathFileName(FullFilePath.filename().stem());
 		wstring wstrFileName = PathFileName.wstring();
-		wstring wstrExt = FullFilePath.extension();
+		wstring wstrExt = FullFilePath.extension().wstring();
 		wstring wstrCheckFileName = wstrFileName.erase(wstrFileName.find(L".0"));
 		wstring wstrChangeFilepath = FullFilePath.replace_filename(wstrCheckFileName + L".%d" + wstrExt).wstring();
 
-		uint32 iCount = 0;
-		for (auto& Filepath : filesystem::directory_iterator(FullFilePath.remove_filename()))
-		{
-			filesystem::path FullPath = Filepath.path();
-			wstring wstrPath = FullPath.filename().stem();
-
-			size_t pos = wstrPath.find(wstrCheckFileName);
-
-			if (pos != std::wstring::npos)
-				iCount++;
-		}
+		const uint32 iCount = Count_SequenceFiles(wstrChangeFilepath);
 
 		m_arrayMaterialTextures[Cast_Uint(MATERIAL_TYPE::METAL)] = CFileFunction::CreateShaderResourceViewsReadFile(wstrChangeFilepath, iCount, m_pDevice);
 	}

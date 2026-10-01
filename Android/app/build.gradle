@@ -9,14 +9,14 @@ android {
 
     defaultConfig {
         applicationId "com.mingeonhee.myframeworkmobile"
-        minSdk 26
+        minSdk 28
         targetSdk 35
         versionCode 1
         versionName "1.0"
 
         externalNativeBuild {
             cmake {
-                cppFlags "-std=c++17 -Wall -Wextra"
+                cppFlags "-std=c++17"
                 abiFilters "arm64-v8a", "x86_64"
             }
         }
@@ -39,3 +39,17 @@ android {
         }
     }
 }
+
+// 원본 엔진과 같은 경로("../../Resource/..." → "Resource/...")로 읽을 수 있게 저장소 루트의 리소스 / 셰이더를 APK assets 로 복사한다.
+def frameworkRoot = file("../..")
+def generatedAssets = layout.buildDirectory.dir("generated/frameworkAssets")
+
+tasks.register("copyFrameworkAssets", Sync) {
+    from(frameworkRoot) {
+        include "Resource/**", "Shader/**", "Engine/Shader/**", "Game/Shader/**"
+    }
+    into generatedAssets
+}
+
+android.sourceSets.main.assets.srcDirs += generatedAssets
+preBuild.dependsOn "copyFrameworkAssets"

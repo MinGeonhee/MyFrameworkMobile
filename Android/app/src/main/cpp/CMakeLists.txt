@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.22.1)
+cmake_minimum_required(VERSION 3.22.1)
 
 project(MyFrameworkMobileAndroid LANGUAGES CXX)
 
@@ -46,73 +46,31 @@ add_subdirectory(
 find_library(ANDROID_LIBRARY android REQUIRED)
 find_library(LOG_LIBRARY log REQUIRED)
 
-file(GLOB MY_FRAMEWORK_ENGINE_SOURCES CONFIGURE_DEPENDS
-    "${MY_FRAMEWORK_ROOT}/Engine/Private/*.cpp"
+# 원본 엔진(Windows) 과 같은 include 규칙 : DirectXMath / json / stb / ImGui
+set(MY_FRAMEWORK_COMMON_INCLUDES
+    "${MY_FRAMEWORK_ROOT}/Engine/Public"
+    "${MY_FRAMEWORK_ROOT}/Library/DirectXMath/Inc"
+    "${MY_FRAMEWORK_ROOT}/Library/DirectXMath/Stub"
+    "${MY_FRAMEWORK_ROOT}/Library/ImGui"
+    "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine/DiligentCore"
+    "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine/DiligentTools/ThirdParty/stb"
+    "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine/DiligentTools/ThirdParty/json/single_include"
 )
+# __super / MSVC 확장 문법 , 원본 코드의 경고는 끈다
+set(MY_FRAMEWORK_COMPILE_OPTIONS -fms-extensions -Wno-everything)
 
-add_library(MyFrameworkMobileEngine SHARED
-    ${MY_FRAMEWORK_ENGINE_SOURCES}
-)
-
+file(GLOB MY_FRAMEWORK_ENGINE_SOURCES CONFIGURE_DEPENDS "${MY_FRAMEWORK_ROOT}/Engine/Private/*.cpp")
+add_library(MyFrameworkMobileEngine SHARED ${MY_FRAMEWORK_ENGINE_SOURCES})
 set_target_properties(MyFrameworkMobileEngine PROPERTIES OUTPUT_NAME Engine)
 target_compile_definitions(MyFrameworkMobileEngine PRIVATE ENGINE_EXPORTS)
 target_compile_features(MyFrameworkMobileEngine PRIVATE cxx_std_17)
-target_include_directories(MyFrameworkMobileEngine PRIVATE
-    "${MY_FRAMEWORK_ROOT}/Engine/Public"
-    "${MY_FRAMEWORK_ROOT}/Engine/Private"
-    "${MY_FRAMEWORK_ROOT}/Engine/Default"
-    "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine/DiligentCore"
-    "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine/DiligentTools/ThirdParty/stb"
-)
-target_link_libraries(MyFrameworkMobileEngine PRIVATE
-    Diligent-GraphicsEngineVk-shared
-    ${ANDROID_LIBRARY}
-    ${LOG_LIBRARY}
-)
+target_compile_options(MyFrameworkMobileEngine PRIVATE ${MY_FRAMEWORK_COMPILE_OPTIONS})
+target_include_directories(MyFrameworkMobileEngine PRIVATE ${MY_FRAMEWORK_COMMON_INCLUDES} "${MY_FRAMEWORK_ROOT}/Engine/Private" "${MY_FRAMEWORK_ROOT}/Engine/Default")
+target_link_libraries(MyFrameworkMobileEngine PRIVATE Diligent-GraphicsEngineVk-shared ${ANDROID_LIBRARY} ${LOG_LIBRARY})
 
-file(GLOB MY_FRAMEWORK_GAME_SOURCES CONFIGURE_DEPENDS
-    "${MY_FRAMEWORK_ROOT}/Game/Private/*.cpp"
-)
-
-add_library(MyFrameworkMobileGame STATIC
-    ${MY_FRAMEWORK_GAME_SOURCES}
-)
-
-target_compile_features(MyFrameworkMobileGame PRIVATE cxx_std_17)
-target_include_directories(MyFrameworkMobileGame PRIVATE
-    "${MY_FRAMEWORK_ROOT}/Game/Public"
-    "${MY_FRAMEWORK_ROOT}/Game/Private"
-    "${MY_FRAMEWORK_ROOT}/Game/Default"
-    "${MY_FRAMEWORK_ROOT}/Engine/Public"
-    "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine/DiligentCore"
-)
-target_link_libraries(MyFrameworkMobileGame PRIVATE
-    MyFrameworkMobileEngine
-)
-
-add_library(MyFrameworkMobileAndroid SHARED
-    NativeMain.cpp
-)
-
+file(GLOB MY_FRAMEWORK_GAME_SOURCES CONFIGURE_DEPENDS "${MY_FRAMEWORK_ROOT}/Game/Private/*.cpp")
+add_library(MyFrameworkMobileAndroid SHARED NativeMain.cpp ${MY_FRAMEWORK_GAME_SOURCES})
 target_compile_features(MyFrameworkMobileAndroid PRIVATE cxx_std_17)
-target_include_directories(MyFrameworkMobileAndroid PRIVATE
-    "${MY_FRAMEWORK_ROOT}/Engine/Public"
-    "${MY_FRAMEWORK_ROOT}/Engine/Default"
-    "${MY_FRAMEWORK_ROOT}/Game/Public"
-    "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine/DiligentCore"
-)
-
-find_library(ANDROID_LIBRARY android REQUIRED)
-find_library(LOG_LIBRARY log REQUIRED)
-
-target_link_libraries(MyFrameworkMobileAndroid PRIVATE
-    MyFrameworkMobileGame
-    MyFrameworkMobileEngine
-    ${ANDROID_LIBRARY}
-    ${LOG_LIBRARY}
-)
-
-
-
-
-
+target_compile_options(MyFrameworkMobileAndroid PRIVATE ${MY_FRAMEWORK_COMPILE_OPTIONS})
+target_include_directories(MyFrameworkMobileAndroid PRIVATE "${MY_FRAMEWORK_ROOT}/Game/Public" "${MY_FRAMEWORK_ROOT}/Game/Default" ${MY_FRAMEWORK_COMMON_INCLUDES})
+target_link_libraries(MyFrameworkMobileAndroid PRIVATE MyFrameworkMobileEngine ${ANDROID_LIBRARY} ${LOG_LIBRARY})

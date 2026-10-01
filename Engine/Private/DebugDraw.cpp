@@ -65,9 +65,9 @@ void XM_CALLCONV DX::Draw(PrimitiveBatch<VertexPositionColor>* batch,
 
     const float radius = sphere.Radius;
 
-    XMVECTOR xaxis = g_XMIdentityR0 * radius;
-    XMVECTOR yaxis = g_XMIdentityR1 * radius;
-    XMVECTOR zaxis = g_XMIdentityR2 * radius;
+    XMVECTOR xaxis = XMVectorScale(g_XMIdentityR0, radius);
+    XMVECTOR yaxis = XMVectorScale(g_XMIdentityR1, radius);
+    XMVECTOR zaxis = XMVectorScale(g_XMIdentityR2, radius);
 
     DrawRing(batch, origin, xaxis, zaxis, color);
     DrawRing(batch, origin, xaxis, yaxis, color);
@@ -170,7 +170,7 @@ void XM_CALLCONV DX::DrawGrid(PrimitiveBatch<VertexPositionColor>* batch,
 
     for (size_t i = 0; i <= ydivs; i++)
     {
-        FLOAT percent = float(i) / float(ydivs);
+        float percent = float(i) / float(ydivs);
         percent = (percent * 2.f) - 1.f;
         XMVECTOR scale = XMVectorScale(yAxis, percent);
         scale = XMVectorAdd(scale, origin);
@@ -192,7 +192,7 @@ void XM_CALLCONV DX::DrawRing(PrimitiveBatch<VertexPositionColor>* batch,
 
     VertexPositionColor verts[c_ringSegments + 1];
 
-    FLOAT fAngleDelta = XM_2PI / float(c_ringSegments);
+    float fAngleDelta = XM_2PI / float(c_ringSegments);
     // Instead of calling cos/sin for each segment we calculate
     // the sign of the angle delta and then incrementally calculate sin
     // and cosine from then on.

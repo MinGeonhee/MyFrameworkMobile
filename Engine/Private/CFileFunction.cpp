@@ -16,7 +16,7 @@ ShaderResourceView* CFileFunction::CreateShaderResourceViewReadFile(const std::w
 
 	filesystem::path fsPath(wstrFilePath);
 	/* 파일 확장자 검사 */
-	std::wstring fsPathEXT = fsPath.extension();
+	std::wstring fsPathEXT = fsPath.extension().wstring();
 
 	/* 원본 : DDSTextureLoader / WICTextureLoader → 엔진 텍스처 로더 (png , jpg , tga , bmp , dds) */
 	Diligent::ITexture* pResource{ nullptr };

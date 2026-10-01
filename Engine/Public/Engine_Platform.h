@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cwchar>
 #include <cstdarg>
+#include <chrono>
 
 #if defined(_WIN32)
 #    ifndef WIN32_LEAN_AND_MEAN
@@ -200,12 +201,8 @@ inline int strcpy_s(char (&Dest)[N], const char* pSrc)
     Dest[N - 1] = '\0';
     return 0;
 }
-inline int strcpy_s(char* pDest, size_t iCount, const char* pSrc)
-{
-    std::strncpy(pDest, pSrc, iCount - 1);
-    pDest[iCount - 1] = '\0';
-    return 0;
-}
+// strcpy_s(char*, size_t, const char*) 는 Diligent StringTools.h 가 비 Windows 에서 정의한다.
+#include "Common/interface/StringTools.h"
 template <size_t N>
 inline int wcscpy_s(wchar_t (&Dest)[N], const wchar_t* pSrc)
 {
@@ -219,6 +216,20 @@ inline int wcscpy_s(wchar_t* pDest, size_t iCount, const wchar_t* pSrc)
     pDest[iCount - 1] = L'\0';
     return 0;
 }
+
+// 고해상도 타이머 (QueryPerformanceCounter → steady_clock 나노초)
+typedef std::uint16_t UINT16;
+union LARGE_INTEGER { long long QuadPart; };
+inline int QueryPerformanceCounter(LARGE_INTEGER* pCount)
+{
+    pCount->QuadPart = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    return 1;
+}
+inline int QueryPerformanceFrequency(LARGE_INTEGER* pFreq) { pFreq->QuadPart = 1000000000LL; return 1; }
+
+// 마우스 커서 고정 (Android 는 커서가 없으므로 아무것도 하지 않는다)
+inline int ClientToScreen(HWND, POINT*) { return 1; }
+inline int SetCursorPos(int, int) { return 1; }
 
 // Windows 가상 키코드. Android 입력은 InputManager에서 이 값으로 매핑한다.
 #    define VK_LBUTTON  0x01
