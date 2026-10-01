@@ -118,7 +118,7 @@ cbuffer g_LightGroupBuffer : register(b3)
     Light_Buffer_Data         tGlobalLightBuffer;
     Light_Buffer_Data         arrPointLightBuffer[MAX_LIGHTS];
     int                       iPointLightNum;
-    int3                      iDummy;
+    int                       iDummy0, iDummy1, iDummy2;
 }
 
 cbuffer g_MouseBuffer : register(b4)

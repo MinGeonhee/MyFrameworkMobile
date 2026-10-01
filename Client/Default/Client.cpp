@@ -12,7 +12,8 @@ namespace
 	constexpr wchar_t WINDOW_TITLE[] = L"MyFramework Mobile";
 
 	// Client에서는 이 값만 바꾸면 그래픽 API를 선택할 수 있습니다. (D3D11 / VULKAN)
-	constexpr GRAPHIC_API GRAPHIC_BACKEND = GRAPHIC_API::D3D11;
+	// 실행 인자 -d3d11 / -vulkan 으로도 바꿀 수 있습니다.
+	GRAPHIC_API GRAPHIC_BACKEND = GRAPHIC_API::VULKAN;
 
 	CMainApp* g_pMainApp = nullptr;
 
@@ -64,6 +65,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                       _In_ int iCmdShow)
 {
 	Set_WorkingDirectory();
+
+	if (lpCmdLine != nullptr)
+	{
+		const std::wstring wstrCmd = lpCmdLine;
+		if (wstrCmd.find(L"-d3d11") != std::wstring::npos)  GRAPHIC_BACKEND = GRAPHIC_API::D3D11;
+		if (wstrCmd.find(L"-vulkan") != std::wstring::npos) GRAPHIC_BACKEND = GRAPHIC_API::VULKAN;
+	}
 
 	WNDCLASSEXW WindowClass{};
 	WindowClass.cbSize = sizeof(WNDCLASSEXW);
