@@ -5,25 +5,8 @@ project(MyFrameworkMobileAndroid LANGUAGES CXX)
 set(MY_FRAMEWORK_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../../..")
 set(DILIGENT_SOURCE_ROOT "${MY_FRAMEWORK_ROOT}/Library/DiligentEngine")
 
-# OneDrive 경로가 길어서 Diligent/glslang 빌드가 깨질 수 있으므로,
-# 빌드 폴더 안에 짧은 NTFS junction을 만들어 사용한다.
-if(CMAKE_HOST_WIN32)
-    set(DILIGENT_SOURCE_LINK "${CMAKE_BINARY_DIR}/DiligentSource")
-    if(NOT EXISTS "${DILIGENT_SOURCE_LINK}")
-        file(TO_NATIVE_PATH "${DILIGENT_SOURCE_LINK}" DILIGENT_SOURCE_LINK_NATIVE)
-        file(TO_NATIVE_PATH "${DILIGENT_SOURCE_ROOT}" DILIGENT_SOURCE_ROOT_NATIVE)
-        execute_process(
-            COMMAND cmd /c mklink /J "${DILIGENT_SOURCE_LINK_NATIVE}" "${DILIGENT_SOURCE_ROOT_NATIVE}"
-            RESULT_VARIABLE DILIGENT_LINK_RESULT
-            OUTPUT_QUIET
-            ERROR_VARIABLE DILIGENT_LINK_ERROR
-        )
-        if(NOT DILIGENT_LINK_RESULT EQUAL 0)
-            message(FATAL_ERROR "Failed to create short Diligent source link: ${DILIGENT_LINK_ERROR}")
-        endif()
-    endif()
-    set(DILIGENT_SOURCE_ROOT "${DILIGENT_SOURCE_LINK}")
-endif()
+# 주의 : 빌드 폴더 안에 소스 junction 을 만들면 안 된다.
+# Gradle 이 빌드 폴더를 지울 때 junction 을 따라 들어가 Library/DiligentEngine 원본까지 삭제한다.
 
 set(DILIGENT_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(DILIGENT_BUILD_FX OFF CACHE BOOL "" FORCE)

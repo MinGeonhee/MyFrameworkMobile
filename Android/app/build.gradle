@@ -28,6 +28,7 @@ android {
         }
         release {
             minifyEnabled false
+            signingConfig signingConfigs.debug   // 로컬 테스트용 (스토어 배포 시 교체)
         }
     }
 
